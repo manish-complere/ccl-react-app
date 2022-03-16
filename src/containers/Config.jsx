@@ -213,6 +213,7 @@ const Config = () => {
           method: "GET",
         },
       });
+      console.log(await response.text());
       if (response.status === 200) {
         const filesURL = `/files/${state[0]._id}`;
         try {
@@ -222,8 +223,8 @@ const Config = () => {
               method: "GET",
             },
           });
-          const tempData = [];
           const result = await files.json();
+          const tempData = [];
           result.forEach((item) => {
             const { status, _id, validation_message, file_name, guess_schema } =
               item || {};
