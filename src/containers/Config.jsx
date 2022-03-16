@@ -205,32 +205,47 @@ const Config = () => {
   };
 
   const handlePoolBtnClick = async () => {
-    const URL = "/files";
-    const response = await request({
-      URL,
-      requestOptions: {
-        method: "GET",
-      },
-    });
-    if (response.status === 200) {
-      const tempData = [];
-      const result = await response.json();
-      result.forEach((item) => {
-        const { status, _id, validation_message, file_name, guess_schema } =
-          item || {};
-        const { file_path } = guess_schema.file_properties || {};
-        const tData = {
-          _id: _id,
-          file_name: file_name,
-          file_path: file_path,
-          status: status,
-          validation_message: validation_message
-            ? validation_message
-            : "no-message",
-        };
-        tempData.push(tData);
+    const URL = `/pooling/${state[0]._id}`;
+    try {
+      const response = await request({
+        URL,
+        requestOptions: {
+          method: "GET",
+        },
       });
-      setData(tempData);
+      if (response.status === 200) {
+        const filesURL = `/files/${state[0]._id}`;
+        try {
+          const files = await request({
+            URL: filesURL,
+            requestOptions: {
+              method: "GET",
+            },
+          });
+          const tempData = [];
+          const result = await files.json();
+          result.forEach((item) => {
+            const { status, _id, validation_message, file_name, guess_schema } =
+              item || {};
+            const { file_path } = guess_schema.file_properties || {};
+            const tData = {
+              _id: _id,
+              file_name: file_name,
+              file_path: file_path,
+              status: status,
+              validation_message: validation_message
+                ? validation_message
+                : "no-message",
+            };
+            tempData.push(tData);
+          });
+          setData(tempData);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
