@@ -213,7 +213,6 @@ const Config = () => {
           method: "GET",
         },
       });
-      console.log(await response.text());
       if (response.status === 200) {
         const filesURL = `/files/${state[0]._id}`;
         try {
@@ -295,9 +294,23 @@ const Config = () => {
     });
     const result = await response.json();
     if (response.status === 200) {
-      setSeverity(result.message === "status is valid" ? "success" : "error");
+      setSeverity(result.status === 200 ? "success" : "error");
       setMessage(result.message);
       setOpen(true);
+      console.log(result.status);
+      if (result.status === 200) {
+        const tempData = data.map((item) => {
+          if (item._id === _id) {
+            return {
+              ...item,
+              status: "success",
+            };
+          } else {
+            return item;
+          }
+        });
+        setData(tempData);
+      }
     }
   };
 
@@ -319,7 +332,6 @@ const Config = () => {
         body: JSON.stringify(finalData),
       },
     });
-    console.log(await response);
     setRenamedData(data);
     setActiveTab(0);
   };
@@ -376,6 +388,12 @@ const Config = () => {
       }
     }
   }, [state]);
+
+  useEffect(() => {
+    if (activeTab === 1) {
+      handlePoolBtnClick();
+    }
+  }, [activeTab]);
 
   return (
     <div className={classes.root}>
