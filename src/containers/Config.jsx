@@ -391,7 +391,7 @@ const Config = () => {
 
   useEffect(() => {
     if (activeTab === 1) {
-      handlePoolBtnClick();
+      !data && handlePoolBtnClick();
     }
   }, [activeTab]);
 
