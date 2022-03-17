@@ -32,7 +32,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const tableHead = ["_Id", "File Path", "File Type", "Status", "Action"];
+const tableHead = [
+  "_Id",
+  "File Path",
+  "File Type",
+  "Status",
+  "Validation Message",
+  "Action",
+];
 
 const ConfigList = () => {
   const classes = useStyles();
@@ -58,13 +65,16 @@ const ConfigList = () => {
       const result = await response.json();
       setOriginalData(result);
       Object.values(result).forEach((item) => {
-        const { file_properties, status, _id } = item || {};
+        const { file_properties, status, _id, validation_message } = item || {};
         const { file_path, file_type } = file_properties || {};
         const tData = {
           _id: _id,
           file_path: file_path,
           file_type: file_type,
           status: status,
+          validation_message: validation_message
+            ? validation_message
+            : "no-message",
         };
         tempData.push(tData);
       });
