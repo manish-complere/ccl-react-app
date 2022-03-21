@@ -67,7 +67,6 @@ const CustomTable = (props = {}) => {
 
   const id = "simple-popover";
   const isPopupOpen = Boolean(anchorEl);
-  console.log(tableBody)
 
   const classes = useStyles();
 
@@ -133,8 +132,16 @@ const CustomTable = (props = {}) => {
                 )}
                 {date && (
                   <>
-                    <TableCell>{item.created_at}</TableCell>
-                    <TableCell>{item.last_modified_date}</TableCell>
+                    <TableCell>
+                      {item.created_at}
+                      {/* {new Date(item.created_at).toLocaleDateString()}, */}
+                      {/* {new Date(item.created_at).toLocaleTimeString()} */}
+                    </TableCell>
+                    <TableCell>
+                      {item.last_modified_date}
+                      {/* {new Date(item.last_modified_date).toLocaleDateString()},
+                      {new Date(item.last_modified_date).toLocaleTimeString()} */}
+                    </TableCell>
                   </>
                 )}
                 {isRename && (

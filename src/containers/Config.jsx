@@ -310,6 +310,8 @@ const Config = () => {
       setSeverity(result.status === 200 ? "success" : "error");
       setMessage(result.message);
       setOpen(true);
+      // const isFilesOnly = true;
+      // handlePoolBtnClick(isFilesOnly);
       // if (result.status === 200) {
       const tempData = data.map((item) => {
         if (item._id === _id) {
@@ -354,7 +356,7 @@ const Config = () => {
   };
 
   const handleAddNameAndRename = () => {
-    setRenamedData((prevValues) => [...prevValues, attributeVal]);
+    setRenamedSavedData((prevValues) => [...prevValues, attributeVal]);
     setAttributeVal({});
   };
 
