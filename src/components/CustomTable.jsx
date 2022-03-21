@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   makeStyles,
   Paper,
@@ -13,6 +13,8 @@ import {
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import PlaylistAddCheckIcon from "@material-ui/icons/PlaylistAddCheck";
 import CreateIcon from "@material-ui/icons/Create";
+import VisibilityIcon from "@material-ui/icons/Visibility";
+import PopUp from "./PopUp";
 
 const useStyles = makeStyles((theme) => ({
   table: {},
@@ -40,6 +42,7 @@ const useStyles = makeStyles((theme) => ({
   renameTab: {
     display: "flex",
     width: theme.spacing(10),
+    gap: theme.spacing(0.5),
     justifyContent: "space-between",
   },
 }));
@@ -55,8 +58,28 @@ const CustomTable = (props = {}) => {
     onRename = () => {},
     onValidate = () => {},
     fromFile = false,
+    guessSchema = [],
+    date = false,
   } = props;
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [attributes, setAttributes] = useState({});
+
+  const id = "simple-popover";
+  const isPopupOpen = Boolean(anchorEl);
+  console.log(tableBody)
+
   const classes = useStyles();
+
+  const handleViewAttributesClick = (event, _id) => {
+    const tempAttribute = guessSchema.filter((item, index) => item._id === _id);
+    setAttributes(tempAttribute[0]);
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopupClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <Grid container justifyContent="center">
@@ -108,6 +131,12 @@ const CustomTable = (props = {}) => {
                     />
                   </TableCell>
                 )}
+                {date && (
+                  <>
+                    <TableCell>{item.created_at}</TableCell>
+                    <TableCell>{item.last_modified_date}</TableCell>
+                  </>
+                )}
                 {isRename && (
                   <TableCell className={classes.renameTab}>
                     <DeleteForeverIcon
@@ -122,6 +151,11 @@ const CustomTable = (props = {}) => {
                       className={classes.renameIcon}
                       onClick={() => onValidate(item._id)}
                     />
+                    <VisibilityIcon
+                      className={classes.renameIcon}
+                      fontSize="small"
+                      onClick={(e) => handleViewAttributesClick(e, item._id)}
+                    />
                   </TableCell>
                 )}
               </TableRow>
@@ -129,6 +163,16 @@ const CustomTable = (props = {}) => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* pop up for file attributes */}
+      <PopUp
+        id={id}
+        open={isPopupOpen}
+        anchorEl={anchorEl}
+        onClose={handlePopupClose}
+        data={attributes}
+        showAttributes={true}
+      />
     </Grid>
   );
 };

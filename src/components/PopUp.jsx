@@ -13,6 +13,9 @@ const useStyles = makeStyles((theme) => ({
   container: {
     padding: theme.spacing(2),
   },
+  wrapper: {
+    padding: theme.spacing(0.5, 3),
+  },
 }));
 
 const initialValues = {
@@ -29,6 +32,8 @@ const PopUp = (props = {}) => {
     data = [],
     handleSave = () => {},
     file_id = "",
+    isRename = false,
+    showAttributes = false,
   } = props;
 
   const [tempData, setTempData] = useState(data);
@@ -42,6 +47,7 @@ const PopUp = (props = {}) => {
   };
 
   const handleCancelClick = () => {
+    // setIsSavedAttributeNameClicked(false);
     onClose();
   };
 
@@ -78,84 +84,102 @@ const PopUp = (props = {}) => {
         horizontal: "left",
       }}
     >
-      <Grid className={classes.container}>
-        <Grid
-          container
-          xs={12}
-          justifyContent="center"
-          style={{ textAlign: "center" }}
-        >
-          <Grid xs={6}>
-            <Typography>Attribute Name</Typography>
-          </Grid>
-          <Grid xs={6}>
-            <Typography>Renamed Attribute</Typography>
-          </Grid>
-        </Grid>
-        {tempData.length &&
-          tempData.map((item, index) => (
-            <Grid
-              container
-              item
-              key={index}
-              xs={12}
-              justifyContent="space-around"
-              style={{margin:"1rem 0"}}
-            >
-              <Grid item xs={5}>
-                <Textfield
-                  name="file_attribute_name"
-                  onChange={handlePredefinedDataChange}
-                  value={item.file_attribute_name}
-                  disabled={true}
-                />
-              </Grid>
-              <Grid item xs={5}>
-                <Textfield
-                  id={index}
-                  name="file_attribute_renamed"
-                  onChange={handlePredefinedDataChange}
-                  value={item.file_attribute_renamed}
-                  disabled={false}
-                />
-              </Grid>
+      {!!isRename && (
+        <Grid className={classes.container}>
+          <Grid
+            container
+            xs={12}
+            justifyContent="center"
+            style={{ textAlign: "center" }}
+          >
+            <Grid xs={6}>
+              <Typography>Attribute Name</Typography>
             </Grid>
-          ))}
-        <Grid container item xs={12} justifyContent="center">
-          <Grid
-            item
-            container
-            xs={4}
-            justifyContent="center"
-            style={{ marginTop: "1rem" }}
-          >
-            <Button
-              onClick={handleSaveClick}
-              variant="contained"
-              color="primary"
-              disabled={!tempData.length}
-            >
-              Save
-            </Button>
+            <Grid xs={6}>
+              <Typography>Renamed Attribute</Typography>
+            </Grid>
           </Grid>
-          <Grid
-            item
-            container
-            xs={4}
-            justifyContent="center"
-            style={{ marginTop: "1rem" }}
-          >
-            <Button
-              onClick={handleCancelClick}
-              variant="contained"
-              color="secondary"
+          {tempData.length &&
+            tempData.map((item, index) => (
+              <Grid
+                container
+                item
+                key={index}
+                xs={12}
+                justifyContent="space-around"
+                style={{ margin: "1rem 0" }}
+              >
+                <Grid item xs={5}>
+                  <Textfield
+                    name="file_attribute_name"
+                    onChange={handlePredefinedDataChange}
+                    value={item.file_attribute_name}
+                    disabled={true}
+                  />
+                </Grid>
+                <Grid item xs={5}>
+                  <Textfield
+                    id={index}
+                    name="file_attribute_renamed"
+                    onChange={handlePredefinedDataChange}
+                    value={item.file_attribute_renamed}
+                    disabled={false}
+                  />
+                </Grid>
+              </Grid>
+            ))}
+          <Grid container item xs={12} justifyContent="center">
+            <Grid
+              item
+              container
+              xs={4}
+              justifyContent="center"
+              style={{ marginTop: "1rem" }}
             >
-              Cancel
-            </Button>
+              <Button
+                onClick={handleSaveClick}
+                variant="contained"
+                color="primary"
+                disabled={!tempData.length}
+              >
+                Save
+              </Button>
+            </Grid>
+            <Grid
+              item
+              container
+              xs={4}
+              justifyContent="center"
+              style={{ marginTop: "1rem" }}
+            >
+              <Button
+                onClick={handleCancelClick}
+                variant="contained"
+                color="secondary"
+              >
+                Cancel
+              </Button>
+            </Grid>
           </Grid>
         </Grid>
-      </Grid>
+      )}
       {/* </Grid> */}
+      {showAttributes && (
+        <div>
+          {data &&
+          Object.values(data).length &&
+          Object.values(data.file_attributes).length ? (
+            Object.values(data.file_attributes).map((item, index) => (
+              <div className={classes.wrapper}>
+                {JSON.stringify(item)}
+                <br />
+              </div>
+            ))
+          ) : (
+            <div className={classes.wrapper}>No Attribute</div>
+          )}
+        </div>
+      )}
     </Popover>
   );
 };

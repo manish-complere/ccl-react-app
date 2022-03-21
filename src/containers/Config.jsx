@@ -75,6 +75,8 @@ const tableHead = [
   "File Path",
   "Status",
   "Validation Message",
+  "Created Date",
+  "Last Modified Date",
   "Action",
 ];
 
@@ -93,12 +95,13 @@ const Config = () => {
   const [data, setData] = useState();
   const [anchorEl, setAnchorEl] = useState(null);
   const [renamedData, setRenamedData] = useState([]);
+  const [renamedSavedData, setRenamedSavedData] = useState([]);
   const [fileId, setFileId] = useState("");
   const [attributeVal, setAttributeVal] = useState({});
+  const [guessSchema, setGuessSchema] = useState([]);
 
   const isPopupOpen = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
-
   const classes = useStyles();
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -109,7 +112,7 @@ const Config = () => {
     const dataWithUserDefinedSchema = {
       ...configValues,
       user_defined_schema: {
-        file_attributes: renamedData,
+        file_attributes: renamedSavedData,
       },
     };
 
@@ -204,16 +207,18 @@ const Config = () => {
     setActiveTab(selectedTab);
   };
 
-  const handlePoolBtnClick = async () => {
-    const URL = `/pooling/${state[0]._id}`;
+  const handlePoolBtnClick = async (onlyFiles = false) => {
+    const URL = onlyFiles ? "" : `/pooling/${state[0]._id}`;
     try {
-      const response = await request({
-        URL,
-        requestOptions: {
-          method: "GET",
-        },
-      });
-      if (response.status === 200) {
+      const response =
+        !onlyFiles &&
+        (await request({
+          URL,
+          requestOptions: {
+            method: "GET",
+          },
+        }));
+      if (response.status === 200 || onlyFiles) {
         const filesURL = `/files/${state[0]._id}`;
         try {
           const files = await request({
@@ -224,10 +229,21 @@ const Config = () => {
           });
           const result = await files.json();
           const tempData = [];
+          console.log(result);
           result.forEach((item) => {
-            const { status, _id, validation_message, file_name, guess_schema } =
-              item || {};
+            const {
+              status,
+              _id,
+              validation_message,
+              file_name,
+              guess_schema,
+              created_at,
+              last_modified_date,
+            } = item || {};
             const { file_path } = guess_schema.file_properties || {};
+            const { file_attributes } = guess_schema || {};
+            const gSchema = { _id: _id, file_attributes: file_attributes };
+            setGuessSchema((prevValues) => [...prevValues, gSchema]);
             const tData = {
               _id: _id,
               file_name: file_name,
@@ -236,6 +252,8 @@ const Config = () => {
               validation_message: validation_message
                 ? validation_message
                 : "no-message",
+              created_at: created_at,
+              last_modified_date: last_modified_date,
             };
             tempData.push(tData);
           });
@@ -275,13 +293,8 @@ const Config = () => {
         method: "GET",
       },
     });
-
-    // const text = await response.text();
-    // if (text === "no file id") {
-    // } else {
     const result = await response.json();
     setRenamedData(result);
-    // }
   };
 
   const handleValidate = async (_id) => {
@@ -297,26 +310,25 @@ const Config = () => {
       setSeverity(result.status === 200 ? "success" : "error");
       setMessage(result.message);
       setOpen(true);
-      console.log(result.status);
-      if (result.status === 200) {
-        const tempData = data.map((item) => {
-          if (item._id === _id) {
-            return {
-              ...item,
-              status: "success",
-            };
-          } else {
-            return item;
-          }
-        });
-        setData(tempData);
-      }
+      // if (result.status === 200) {
+      const tempData = data.map((item) => {
+        if (item._id === _id) {
+          return {
+            ...item,
+            status: result.message,
+          };
+        } else {
+          return item;
+        }
+      });
+      setData(tempData);
+      // }
     }
   };
 
   const handlePopupClose = () => {
     setAnchorEl(null);
-    // setRenamedData([]);
+    setRenamedData([]);
   };
 
   const handleAttributesSave = async (data, _id) => {
@@ -332,7 +344,7 @@ const Config = () => {
         body: JSON.stringify(finalData),
       },
     });
-    setRenamedData(data);
+    setRenamedSavedData(data);
     setActiveTab(0);
   };
 
@@ -349,6 +361,17 @@ const Config = () => {
   const handleNameAndRenameDelete = (index) => {
     const tempData = renamedData.filter((item, ind) => ind !== index);
     setRenamedData(tempData);
+  };
+
+  const handleAttributeRenameChange = (e) => {
+    const { name, value, id } = e.target || {};
+    const values = renamedSavedData.filter((item, index) => index == id);
+    const newValues = { ...values[0], file_attribute_renamed: value };
+    if (values.length) {
+      const tData = [...renamedSavedData];
+      tData.splice(id, 1, newValues);
+      setRenamedSavedData(tData);
+    }
   };
 
   useEffect(() => {
@@ -391,7 +414,8 @@ const Config = () => {
 
   useEffect(() => {
     if (activeTab === 1) {
-      !data && handlePoolBtnClick();
+      const onlyFiles = true;
+      !data && handlePoolBtnClick(onlyFiles);
     }
   }, [activeTab]);
 
@@ -442,7 +466,10 @@ const Config = () => {
               variant="contained"
               disabled={state === null}
               style={{ padding: "5px 24px" }}
-              onClick={handlePoolBtnClick}
+              onClick={() => {
+                const onlyFiles = false;
+                handlePoolBtnClick(onlyFiles);
+              }}
             >
               Pool
             </Button>
@@ -613,7 +640,7 @@ const Config = () => {
                   Attribute Rename
                 </Grid>
               </Grid>
-              {renamedData.map((item, index) => (
+              {renamedSavedData.map((item, index) => (
                 <Grid
                   container
                   item
@@ -631,9 +658,11 @@ const Config = () => {
                   </Grid>
                   <Grid item xs={4}>
                     <Textfield
+                      id={index}
                       name="file_attribute_renamed"
                       value={item.file_attribute_renamed}
-                      disabled={true}
+                      disabled={false}
+                      onChange={handleAttributeRenameChange}
                     />
                   </Grid>
                   <Grid item xs={2} className={classes.svg}>
@@ -710,6 +739,7 @@ const Config = () => {
           data={renamedData}
           handleSave={handleAttributesSave}
           file_id={fileId}
+          isRename={true}
         />
 
         <CustomizedSnackbars
@@ -726,11 +756,13 @@ const Config = () => {
             <CustomTable
               tableBody={data}
               tableHead={tableHead}
+              guessSchema={guessSchema}
               isRename={true}
               onDelete={handleDelete}
               onRename={handleRename}
               onValidate={handleValidate}
               fromFile={true}
+              date={true}
             />
           </div>
         )}
