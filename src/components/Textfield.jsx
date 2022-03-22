@@ -20,6 +20,7 @@ const Textfield = (props = {}) => {
     value = "",
     onFocus = () => {},
     id = "",
+    className = "",
   } = props;
 
   const classes = useStyles();
@@ -27,8 +28,9 @@ const Textfield = (props = {}) => {
   return (
     <div className={classes.root}>
       <TextField
+        {...props}
         id={id}
-        className={classes.text}
+        className={`${classes.text} ${className}`}
         variant={variant}
         name={name}
         onChange={onChange}

@@ -9,6 +9,7 @@ import {
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import EditIcon from "@material-ui/icons/Edit";
 import { useNavigate } from "react-router-dom";
 import {
   Spinner,
@@ -71,6 +72,15 @@ const useStyles = makeStyles((theme) => ({
     // margin: "54px -37%",
     // width: "200%",
   },
+  propertyInput: {
+    "& .Mui-focused": {
+      // border: "none",
+      // outline: "0px ",
+    },
+    "& .MuiInputBase-root": {
+      "& .MuiFormHelperText-root": {},
+    },
+  },
 }));
 
 const initialValues = {
@@ -108,6 +118,8 @@ const Config = () => {
   const [fileId, setFileId] = useState("");
   const [attributeVal, setAttributeVal] = useState({});
   const [guessSchema, setGuessSchema] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [editRename, setEditRename] = useState(null);
 
   const isPopupOpen = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
@@ -199,7 +211,9 @@ const Config = () => {
         if (result.status === "invalid") {
           setSeverity("error");
         }
-        setMessage(`${result.status} : ${result.message}`);
+        setMessage(
+          `${result.status} ${result.message && `:${result.message}`}`
+        );
         setOpen(true);
         setIsLoading(false);
       }
@@ -315,26 +329,35 @@ const Config = () => {
     });
     const result = await response.json();
     if (response.status === 200) {
-      const onlyFiles = true;
-      await handlePoolBtnClick(onlyFiles);
+      // const onlyFiles = true;
+      // await handlePoolBtnClick(onlyFiles);
+      const URL = `/file/${_id}`;
+      const res = request({
+        URL,
+        requestOptions: {
+          method: "GET",
+        },
+      });
+
+      const { status, validation_message } = await (await res).json();
+
       setSeverity(result.status === 200 ? "success" : "error");
       setMessage(result.message);
       setOpen(true);
-      // const isFilesOnly = true;
-      // handlePoolBtnClick(isFilesOnly);
-      // if (result.status === 200) {
       const tempData = data.map((item) => {
         if (item._id === _id) {
           return {
             ...item,
-            status: result.message,
+            status: status,
+            validation_message: validation_message
+              ? validation_message
+              : "no-message",
           };
         } else {
           return item;
         }
       });
       setData(tempData);
-      // }
     }
   };
 
@@ -384,6 +407,27 @@ const Config = () => {
       tData.splice(id, 1, newValues);
       setRenamedSavedData(tData);
     }
+  };
+
+  const handleConfigPropertiesChange = (e) => {
+    const { name, value, id } = e.target || {};
+    const values = properties.filter((item, index) => index == id);
+    const newValues = { ...values[0], value: value };
+    if (values.length) {
+      const tData = [...properties];
+      tData.splice(id, 1, newValues);
+      setProperties(tData);
+    }
+  };
+
+  const handleEditProperty = (index) => {
+    setEditIndex(index);
+    setEditRename(null);
+  };
+
+  const handleEditRename = (index) => {
+    setEditRename(index);
+    setEditIndex(null);
   };
 
   useEffect(() => {
@@ -519,7 +563,6 @@ const Config = () => {
                     <Textfield
                       id={index}
                       name={item.key}
-                      onChange={handleChange}
                       value={item.key}
                       disabled={true}
                     />
@@ -528,12 +571,37 @@ const Config = () => {
                     <Textfield
                       id={index}
                       name={item.value}
-                      onChange={handleChange}
+                      onChange={handleConfigPropertiesChange}
                       value={item.value}
-                      disabled={true}
+                      disabled={editIndex != index}
+                      className={classes.propertyInput}
+                      style={{
+                        borderRadius: `${editIndex == index ? "4px" : "none"}`,
+                        boxShadow: `${
+                          editIndex == index ? "0 0 0 1px blue " : "none"
+                        }`,
+                      }}
                     />
+                    {/* {editIndex == index && (
+                      <span
+                        style={{
+                          color: "rgba(255,0,0,0.6)",
+                          fontSize: "12px",
+                          display:"inline-block",
+                          position:"relative",
+                          top:"20px"
+                        }}
+                      >
+                        in order to save, you need to click on save the
+                        changes
+                      </span> */}
+                    {/* )} */}
                   </Grid>
                   <Grid xs={2} className={classes.svg}>
+                    <EditIcon
+                      onClick={() => handleEditProperty(index)}
+                      style={{ cursor: "pointer" }}
+                    />
                     <DeleteForeverIcon
                       onClick={() => handleRemoveProperty(index)}
                       style={{ cursor: "pointer" }}
@@ -681,11 +749,21 @@ const Config = () => {
                       id={index}
                       name="file_attribute_renamed"
                       value={item.file_attribute_renamed}
-                      disabled={false}
+                      disabled={editRename != index}
                       onChange={handleAttributeRenameChange}
+                      style={{
+                        borderRadius: `${editRename == index ? "4px" : "none"}`,
+                        boxShadow: `${
+                          editRename == index ? "0 0 0 1px blue " : "none"
+                        }`,
+                      }}
                     />
                   </Grid>
                   <Grid item xs={2} className={classes.svg}>
+                    <EditIcon
+                      onClick={() => handleEditRename(index)}
+                      style={{ cursor: "pointer" }}
+                    />
                     <DeleteForeverIcon
                       style={{ cursor: "pointer" }}
                       onClick={() => handleNameAndRenameDelete(index)}
@@ -701,6 +779,10 @@ const Config = () => {
                   <Textfield
                     name="file_attribute_name"
                     onChange={handleAttributeNameAndRenameChange}
+                    onFocus={() => {
+                      setEditRename(null);
+                      setEditIndex(null);
+                    }}
                     value={attributeVal.file_attribute_name}
                     disabled={false}
                   />
@@ -709,6 +791,10 @@ const Config = () => {
                   <Textfield
                     name="file_attribute_renamed"
                     onChange={handleAttributeNameAndRenameChange}
+                    onFocus={() => {
+                      setEditRename(null);
+                      setEditIndex(null);
+                    }}
                     value={attributeVal.file_attribute_renamed}
                     disabled={false}
                   />
@@ -740,7 +826,14 @@ const Config = () => {
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => navigate("/")}
+                    onClick={() => {
+                      const isOk = window.confirm(
+                        "you will lose all your changes, are you sure want to cancel?"
+                      );
+                      if (isOk) {
+                        navigate("/");
+                      }
+                    }}
                   >
                     Cancel
                   </Button>
