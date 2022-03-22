@@ -82,7 +82,7 @@ const CustomTable = (props = {}) => {
 
   return (
     <Grid container justifyContent="center">
-      <TableContainer style={{ width: "60%" }} component={Paper}>
+      <TableContainer style={{ width: "70%" }} component={Paper}>
         <Table
           className={classes.table}
           size="medium"
@@ -134,8 +134,8 @@ const CustomTable = (props = {}) => {
                   <>
                     <TableCell>
                       {item.created_at}
-                      {/* {new Date(item.created_at).toLocaleDateString()}, */}
-                      {/* {new Date(item.created_at).toLocaleTimeString()} */}
+                      {/* {new Date(item.created_at).toLocaleDateString()},
+                      {new Date(item.created_at).toLocaleTimeString()} */}
                     </TableCell>
                     <TableCell>
                       {item.last_modified_date}

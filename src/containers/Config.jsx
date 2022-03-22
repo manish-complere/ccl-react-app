@@ -28,9 +28,18 @@ const useStyles = makeStyles((theme) => ({
   },
   container: {
     margin: "2rem auto",
-    width: "40%",
+    width: "100%",
+    display:'flex',
+    flexDirection:'column'
   },
-  formRoot: {},
+  wrapper:{
+    width:"40%",
+    margin:"auto"
+  },
+  formRoot: {
+    width:"40%",
+    margin:"1rem auto"
+  },
   h6: {
     margin: theme.spacing(0, 0, 1, 2),
     fontWeight: "600",
@@ -59,8 +68,8 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(4, 0),
   },
   filesTable: {
-    margin: "54px -37%",
-    width: "200%",
+    // margin: "54px -37%",
+    // width: "200%",
   },
 }));
 
@@ -424,58 +433,60 @@ const Config = () => {
   return (
     <div className={classes.root}>
       <div className={classes.container}>
-        <Button
-          variant="outlined"
-          style={{
-            marginLeft: "12px",
-          }}
-          onClick={() => {
-            navigate("/");
-          }}
-        >
-          <ArrowBackIcon style={{ marginRight: "4px" }} /> <span>Back</span>
-        </Button>
-        <Typography
-          variant="h6"
-          style={{ textAlign: "center", marginBottom: "16px" }}
-        >
-          Config Management
-        </Typography>
+        <div className={classes.wrapper}>
+          <Button
+            variant="outlined"
+            style={{
+              marginLeft: "12px",
+            }}
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            <ArrowBackIcon style={{ marginRight: "4px" }} /> <span>Back</span>
+          </Button>
+          <Typography
+            variant="h6"
+            style={{ textAlign: "center", marginBottom: "16px" }}
+          >
+            Config Management
+          </Typography>
 
-        {/* tabs */}
+          {/* tabs */}
 
-        <div className={classes.tabs}>
-          <CustomTabs
-            activeTab={activeTab}
-            onChange={handleTabChange}
-            tabs={["Config", "Files"]}
-          />
-        </div>
+          <div className={classes.tabs}>
+            <CustomTabs
+              activeTab={activeTab}
+              onChange={handleTabChange}
+              tabs={["Config", "Files"]}
+            />
+          </div>
 
-        <div className={classes.validateAndPoolBtn}>
-          {activeTab === 0 && (
-            <Button
-              variant="contained"
-              style={{ marginRight: "24px", padding: "5px 24px" }}
-              disabled={state === null}
-              onClick={handleValid}
-            >
-              Validate
-            </Button>
-          )}
-          {activeTab === 1 && (
-            <Button
-              variant="contained"
-              disabled={state === null}
-              style={{ padding: "5px 24px" }}
-              onClick={() => {
-                const onlyFiles = false;
-                handlePoolBtnClick(onlyFiles);
-              }}
-            >
-              Pool
-            </Button>
-          )}
+          <div className={classes.validateAndPoolBtn}>
+            {activeTab === 0 && (
+              <Button
+                variant="contained"
+                style={{ marginRight: "24px", padding: "5px 24px" }}
+                disabled={state === null}
+                onClick={handleValid}
+              >
+                Validate
+              </Button>
+            )}
+            {activeTab === 1 && (
+              <Button
+                variant="contained"
+                disabled={state === null}
+                style={{ padding: "5px 24px" }}
+                onClick={() => {
+                  const onlyFiles = false;
+                  handlePoolBtnClick(onlyFiles);
+                }}
+              >
+                Pool
+              </Button>
+            )}
+          </div>
         </div>
         {isLoading && <Spinner />}
         {!isLoading && activeTab === 0 && (

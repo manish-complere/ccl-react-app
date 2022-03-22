@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   wrapper: {
-    padding: theme.spacing(0.5, 3),
+    padding: theme.spacing(1, 3),
   },
 }));
 
