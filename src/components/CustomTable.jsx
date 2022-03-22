@@ -41,9 +41,11 @@ const useStyles = makeStyles((theme) => ({
   },
   renameTab: {
     display: "flex",
-    width: theme.spacing(10),
+    width: theme.spacing(15),
     gap: theme.spacing(0.5),
-    justifyContent: "space-between",
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: "42px",
   },
 }));
 
@@ -82,7 +84,7 @@ const CustomTable = (props = {}) => {
 
   return (
     <Grid container justifyContent="center">
-      <TableContainer style={{ width: "70%" }} component={Paper}>
+      <TableContainer style={{ width: "100%" }} component={Paper}>
         <Table
           className={classes.table}
           size="medium"

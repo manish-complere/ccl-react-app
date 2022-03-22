@@ -29,16 +29,16 @@ const useStyles = makeStyles((theme) => ({
   container: {
     margin: "2rem auto",
     width: "100%",
-    display:'flex',
-    flexDirection:'column'
+    display: "flex",
+    flexDirection: "column",
   },
-  wrapper:{
-    width:"40%",
-    margin:"auto"
+  wrapper: {
+    width: "40%",
+    margin: "auto",
   },
   formRoot: {
-    width:"40%",
-    margin:"1rem auto"
+    width: "40%",
+    margin: "1rem auto",
   },
   h6: {
     margin: theme.spacing(0, 0, 1, 2),
@@ -199,7 +199,7 @@ const Config = () => {
         if (result.status === "invalid") {
           setSeverity("error");
         }
-        setMessage(result.status);
+        setMessage(`${result.status} : ${result.message}`);
         setOpen(true);
         setIsLoading(false);
       }
@@ -238,7 +238,6 @@ const Config = () => {
           });
           const result = await files.json();
           const tempData = [];
-          console.log(result);
           result.forEach((item) => {
             const {
               status,
@@ -316,6 +315,8 @@ const Config = () => {
     });
     const result = await response.json();
     if (response.status === 200) {
+      const onlyFiles = true;
+      await handlePoolBtnClick(onlyFiles);
       setSeverity(result.status === 200 ? "success" : "error");
       setMessage(result.message);
       setOpen(true);
@@ -404,7 +405,13 @@ const Config = () => {
 
   useEffect(() => {
     if (state) {
-      const { file_attributes, file_properties } = state[0] || {};
+      const { file_attributes, file_properties, user_defined_schema } =
+        state[0] || {};
+
+      if (user_defined_schema) {
+        setRenamedSavedData(user_defined_schema.file_attributes);
+      }
+
       if (file_attributes && file_properties) {
         const tempProperties = [];
         Object.entries(file_properties).forEach((item) => {

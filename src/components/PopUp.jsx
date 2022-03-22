@@ -4,7 +4,6 @@ import {
   makeStyles,
   Typography,
   Grid,
-  InputLabel,
   Button,
 } from "@material-ui/core";
 import Textfield from "./Textfield";
@@ -17,11 +16,6 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1, 3),
   },
 }));
-
-const initialValues = {
-  file_attribute_name: "",
-  file_attribute_renamed: "",
-};
 
 const PopUp = (props = {}) => {
   const {
@@ -37,7 +31,6 @@ const PopUp = (props = {}) => {
   } = props;
 
   const [tempData, setTempData] = useState(data);
-  const [val, setVal] = useState([]);
 
   const classes = useStyles();
 
@@ -47,7 +40,6 @@ const PopUp = (props = {}) => {
   };
 
   const handleCancelClick = () => {
-    // setIsSavedAttributeNameClicked(false);
     onClose();
   };
 
@@ -62,8 +54,6 @@ const PopUp = (props = {}) => {
       setTempData(tData);
     }
   };
-
-  useEffect(() => {}, []);
 
   useEffect(() => {
     setTempData(data);
@@ -163,7 +153,6 @@ const PopUp = (props = {}) => {
           </Grid>
         </Grid>
       )}
-      {/* </Grid> */}
       {showAttributes && (
         <div>
           {data &&

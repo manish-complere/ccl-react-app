@@ -65,7 +65,13 @@ const ConfigList = () => {
       const result = await response.json();
       setOriginalData(result);
       Object.values(result).forEach((item) => {
-        const { file_properties, status, _id, validation_message } = item || {};
+        const {
+          file_properties,
+          status,
+          _id,
+          validation_message,
+          user_defined_schema,
+        } = item || {};
         const { file_path, file_type } = file_properties || {};
         const tData = {
           _id: _id,
@@ -75,6 +81,7 @@ const ConfigList = () => {
           validation_message: validation_message
             ? validation_message
             : "no-message",
+          user_defined_schema: user_defined_schema,
         };
         tempData.push(tData);
       });
