@@ -142,7 +142,7 @@ const CustomTable = (props = {}) => {
                     <TableCell>
                       {item.last_modified_date}
                       {/* {new Date(item.last_modified_date).toLocaleDateString()},
-                      {new Date(item.last_modified_date).toLocaleTimeString()} */}
+                      {new Date(item.last_modified_date).toLocaleString()} */}
                     </TableCell>
                   </>
                 )}

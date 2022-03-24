@@ -72,15 +72,6 @@ const useStyles = makeStyles((theme) => ({
     // margin: "54px -37%",
     // width: "200%",
   },
-  propertyInput: {
-    "& .Mui-focused": {
-      // border: "none",
-      // outline: "0px ",
-    },
-    "& .MuiInputBase-root": {
-      "& .MuiFormHelperText-root": {},
-    },
-  },
 }));
 
 const initialValues = {
@@ -394,8 +385,8 @@ const Config = () => {
   };
 
   const handleNameAndRenameDelete = (index) => {
-    const tempData = renamedData.filter((item, ind) => ind !== index);
-    setRenamedData(tempData);
+    const tempData = renamedSavedData.filter((item, ind) => ind !== index);
+    setRenamedSavedData(tempData);
   };
 
   const handleAttributeRenameChange = (e) => {
@@ -582,20 +573,6 @@ const Config = () => {
                         }`,
                       }}
                     />
-                    {/* {editIndex == index && (
-                      <span
-                        style={{
-                          color: "rgba(255,0,0,0.6)",
-                          fontSize: "12px",
-                          display:"inline-block",
-                          position:"relative",
-                          top:"20px"
-                        }}
-                      >
-                        in order to save, you need to click on save the
-                        changes
-                      </span> */}
-                    {/* )} */}
                   </Grid>
                   <Grid xs={2} className={classes.svg}>
                     <EditIcon
@@ -607,6 +584,19 @@ const Config = () => {
                       style={{ cursor: "pointer" }}
                     />
                   </Grid>
+                  {editIndex == index && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "70%",
+                        color: "rgba(255,0,0,0.8)",
+                        textTransform: "capitalize",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      you need to click on <b>save</b> to save the changes
+                    </span>
+                  )}
                 </Grid>
               ))}
               <Grid contaier xs={12} className={classes.inputs}>
@@ -769,6 +759,20 @@ const Config = () => {
                       onClick={() => handleNameAndRenameDelete(index)}
                     />
                   </Grid>
+                  {editRename == index && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "70%",
+                        color: "rgba(255,0,0,0.9)",
+                        textTransform: "capitalize",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      you need to click on <strong>save</strong> to save the
+                      changes
+                    </span>
+                  )}
                 </Grid>
               ))}
 
