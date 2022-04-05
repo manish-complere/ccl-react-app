@@ -21,6 +21,9 @@ import {
 import { useLocation } from "react-router-dom";
 import request from "../utils/request";
 import { PopUp } from "../components";
+import FileProperties from "./FileProperties";
+import FileAttributes from "./FileAttributes";
+import UserModifiedSchema from "./UserModifiedSchema";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,36 +44,10 @@ const useStyles = makeStyles((theme) => ({
     width: "40%",
     margin: "1rem auto",
   },
-  h6: {
-    margin: theme.spacing(0, 0, 1, 2),
-    fontWeight: "600",
-    letterSpacing: "0.5px",
-  },
-  inputsContainer: {
-    // width: "80%",
-  },
-  inputs: {
-    display: "flex",
-    justifyContent: "space-around",
-    alignItems: "center",
-    margin: theme.spacing(1, 0),
-  },
-  attributes: {
-    margin: theme.spacing(5, 0, 0, 0),
-  },
-  svg: {
-    "& .MuiSvgIcon-root": {
-      fontSize: "2rem",
-    },
-  },
   validateAndPoolBtn: {
     display: "flex",
     padding: theme.spacing(0, 2),
     margin: theme.spacing(4, 0),
-  },
-  filesTable: {
-    // margin: "54px -37%",
-    // width: "200%",
   },
 }));
 
@@ -94,9 +71,6 @@ const Config = () => {
   const [configValues, setConfigValues] = useState(initialValues);
   const [properties, setProperties] = useState([]);
   const [attributes, setAttributes] = useState([]);
-  const [property, setProperty] = useState({});
-  const [attribute, setAttribute] = useState({});
-  const [checked, setChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -107,7 +81,6 @@ const Config = () => {
   const [renamedData, setRenamedData] = useState([]);
   const [renamedSavedData, setRenamedSavedData] = useState([]);
   const [fileId, setFileId] = useState("");
-  const [attributeVal, setAttributeVal] = useState({});
   const [guessSchema, setGuessSchema] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [editRename, setEditRename] = useState(null);
@@ -150,39 +123,25 @@ const Config = () => {
     }
   };
 
-  const handleAddProperties = () => {
+  const handleAddProperties = (property) => {
     setProperties((prevValues) => [...prevValues, property]);
-    setProperty({});
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target || {};
-    setProperty((prevValues) => ({ ...prevValues, [name]: value }));
   };
 
   const handleRemoveProperty = (index) => {
     const tempProperties = properties.filter((item, ind) => ind !== index);
+    if (editIndex === index) {
+      setEditIndex(null);
+    }
     setProperties(tempProperties);
   };
 
-  const handleAttributeAdd = () => {
+  const handleAttributeAdd = (attribute) => {
     setAttributes((prevValues) => [...prevValues, attribute]);
-    setAttribute({});
-    setChecked(false);
   };
 
   const handleRemoveAttribute = (index) => {
     const tempAttributes = attributes.filter((item, ind) => ind !== index);
     setAttributes(tempAttributes);
-  };
-
-  const handleAttributeChange = (e) => {
-    const { name, value } = e.target || {};
-    setAttribute((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-      file_attribute_required: checked,
-    }));
   };
 
   const handleValid = async () => {
@@ -374,18 +333,15 @@ const Config = () => {
     setActiveTab(0);
   };
 
-  const handleAttributeNameAndRenameChange = (e) => {
-    const { name, value } = e.target || {};
-    setAttributeVal((prevValues) => ({ ...prevValues, [name]: value }));
-  };
-
-  const handleAddNameAndRename = () => {
+  const handleAddNameAndRename = (attributeVal) => {
     setRenamedSavedData((prevValues) => [...prevValues, attributeVal]);
-    setAttributeVal({});
   };
 
   const handleNameAndRenameDelete = (index) => {
     const tempData = renamedSavedData.filter((item, ind) => ind !== index);
+    if (editRename === index) {
+      setEditRename(null);
+    }
     setRenamedSavedData(tempData);
   };
 
@@ -533,317 +489,63 @@ const Config = () => {
         {isLoading && <Spinner />}
         {!isLoading && activeTab === 0 && (
           <form onSubmit={handleSubmit} className={classes.formRoot}>
-            <div className={classes.inputsContainer}>
-              {/* properties */}
-              <Typography className={classes.h6}>File Properties</Typography>
-              <Grid
-                container
-                xs={12}
-                style={{ display: "flex", justifyContent: "center" }}
-              >
-                <Grid item xs={4}>
-                  <Typography style={{ textAlign: "start" }}>Key</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography style={{ textAlign: "start" }}>Value</Typography>
-                </Grid>
-              </Grid>
-              {properties.map((item, index) => (
-                <Grid key={index} contaier xs={12} className={classes.inputs}>
-                  <Grid xs={4}>
-                    <Textfield
-                      id={index}
-                      name={item.key}
-                      value={item.key}
-                      disabled={true}
-                    />
-                  </Grid>
-                  <Grid xs={4}>
-                    <Textfield
-                      id={index}
-                      name={item.value}
-                      onChange={handleConfigPropertiesChange}
-                      value={item.value}
-                      disabled={editIndex != index}
-                      className={classes.propertyInput}
-                      style={{
-                        borderRadius: `${editIndex == index ? "4px" : "none"}`,
-                        boxShadow: `${
-                          editIndex == index ? "0 0 0 1px blue " : "none"
-                        }`,
-                      }}
-                    />
-                  </Grid>
-                  <Grid xs={2} className={classes.svg}>
-                    <EditIcon
-                      onClick={() => handleEditProperty(index)}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <DeleteForeverIcon
-                      onClick={() => handleRemoveProperty(index)}
-                      style={{ cursor: "pointer" }}
-                    />
-                  </Grid>
-                  {editIndex == index && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        left: "70%",
-                        color: "rgba(255,0,0,0.8)",
-                        textTransform: "capitalize",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      you need to click on <b>save</b> to save the changes
-                    </span>
-                  )}
-                </Grid>
-              ))}
-              <Grid contaier xs={12} className={classes.inputs}>
-                <Grid xs={4}>
-                  <Textfield
-                    name="key"
-                    onChange={handleChange}
-                    value={property.key}
-                  />
-                </Grid>
-                <Grid xs={4}>
-                  <Textfield
-                    name="value"
-                    onChange={handleChange}
-                    value={property.value}
-                  />
-                </Grid>
-                <Grid xs={2} className={classes.svg}>
-                  <AddCircleIcon
-                    style={{ cursor: "pointer" }}
-                    onClick={handleAddProperties}
-                  />
-                </Grid>
-              </Grid>
-            </div>
+            {/* properties */}
+            <FileProperties
+              properties={properties}
+              handleConfigPropertiesChange={handleConfigPropertiesChange}
+              handleEditProperty={handleEditProperty}
+              handleRemoveProperty={handleRemoveProperty}
+              handleAddProperties={handleAddProperties}
+              editIndex={editIndex}
+            />
 
             {/* attributes */}
+            <FileAttributes
+              attributes={attributes}
+              handleRemoveAttribute={handleRemoveAttribute}
+              handleAttributeAdd={handleAttributeAdd}
+            />
 
-            <div className={classes.attributes}>
-              <Typography className={classes.h6}>File Attributes</Typography>
-              <Grid
-                container
-                xs={12}
-                style={{ display: "flex", justifyContent: "center" }}
-              >
-                <Grid item xs={6}>
-                  <Typography
-                    style={{ textAlign: "center", marginLeft: "-50px" }}
-                  >
-                    Attribute Name
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography style={{ textAlign: "start" }}>
-                    Required
-                  </Typography>
-                </Grid>
-              </Grid>
+            {/* user modified schema */}
+            <UserModifiedSchema
+              editRename={editRename}
+              renamedSavedData={renamedSavedData}
+              handleAttributeRenameChange={handleAttributeRenameChange}
+              handleEditRename={handleEditRename}
+              handleNameAndRenameDelete={handleNameAndRenameDelete}
+              setEditRename={setEditRename}
+              setEditIndex={setEditIndex}
+              handleAddNameAndRename={handleAddNameAndRename}
+            />
 
-              {/* display atttributes */}
-
-              {attributes.map((item, index) => (
-                <Grid key={index} contaier xs={12} className={classes.inputs}>
-                  <Grid xs={4}>
-                    <Textfield
-                      name={item.file_attribute_name}
-                      value={item.file_attribute_name}
-                      disabled={true}
-                      onChange={handleAttributeChange}
-                    />
-                  </Grid>
-                  <Grid xs={4} container justifyContent="center">
-                    <Checkbox
-                      checked={item.file_attribute_required}
-                      disabled={true}
-                    />
-                  </Grid>
-                  <Grid xs={2} className={classes.svg}>
-                    <DeleteForeverIcon
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleRemoveAttribute(index)}
-                    />
-                  </Grid>
-                </Grid>
-              ))}
-              <Grid contaier xs={12} className={classes.inputs}>
-                <Grid xs={4}>
-                  <Textfield
-                    name="file_attribute_name"
-                    value={attribute.file_attribute_name}
-                    onChange={handleAttributeChange}
-                  />
-                </Grid>
-                <Grid xs={4} container justifyContent="center">
-                  <Checkbox
-                    checked={checked}
-                    onClick={() => {
-                      setChecked(!checked);
-                      setAttribute((prevValues) => ({
-                        ...prevValues,
-                        file_attribute_required: !checked,
-                      }));
-                    }}
-                  />
-                </Grid>
-                <Grid xs={2} className={classes.svg}>
-                  <AddCircleIcon
-                    style={{ cursor: "pointer" }}
-                    onClick={handleAttributeAdd}
-                  />
-                </Grid>
-              </Grid>
-
-              {/* user modified schema */}
-              <Typography className={classes.h6} style={{ marginTop: "2rem" }}>
-                User modified schema
-              </Typography>
-              <Grid
-                container
-                item
-                xs={12}
-                justifyContent="center"
-                style={{ margin: "1rem 0" }}
-              >
-                <Grid item xs={5}>
-                  Attribute Name
-                </Grid>
-                <Grid item xs={5}>
-                  Attribute Rename
-                </Grid>
-              </Grid>
-              {renamedSavedData.map((item, index) => (
-                <Grid
-                  container
-                  item
-                  xs={12}
-                  justifyContent="space-around"
-                  style={{ margin: "1rem 0" }}
-                  key={index}
+            <Grid container style={{ margin: "2rem 0 0 25%" }}>
+              <Grid>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginRight: "2rem" }}
+                  type="submit"
                 >
-                  <Grid item xs={4}>
-                    <Textfield
-                      name="file_attribute_name"
-                      value={item.file_attribute_name}
-                      disabled={true}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Textfield
-                      id={index}
-                      name="file_attribute_renamed"
-                      value={item.file_attribute_renamed}
-                      disabled={editRename != index}
-                      onChange={handleAttributeRenameChange}
-                      style={{
-                        borderRadius: `${editRename == index ? "4px" : "none"}`,
-                        boxShadow: `${
-                          editRename == index ? "0 0 0 1px blue " : "none"
-                        }`,
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={2} className={classes.svg}>
-                    <EditIcon
-                      onClick={() => handleEditRename(index)}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <DeleteForeverIcon
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleNameAndRenameDelete(index)}
-                    />
-                  </Grid>
-                  {editRename == index && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        left: "70%",
-                        color: "rgba(255,0,0,0.9)",
-                        textTransform: "capitalize",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      you need to click on <strong>save</strong> to save the
-                      changes
-                    </span>
-                  )}
-                </Grid>
-              ))}
-
-              {/* add attribute name and renamed Attribute */}
-
-              <Grid container item xs={12} justifyContent="space-around">
-                <Grid item xs={4}>
-                  <Textfield
-                    name="file_attribute_name"
-                    onChange={handleAttributeNameAndRenameChange}
-                    onFocus={() => {
-                      setEditRename(null);
-                      setEditIndex(null);
-                    }}
-                    value={attributeVal.file_attribute_name}
-                    disabled={false}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <Textfield
-                    name="file_attribute_renamed"
-                    onChange={handleAttributeNameAndRenameChange}
-                    onFocus={() => {
-                      setEditRename(null);
-                      setEditIndex(null);
-                    }}
-                    value={attributeVal.file_attribute_renamed}
-                    disabled={false}
-                  />
-                </Grid>
-                <Grid item xs={2} className={classes.svg}>
-                  <AddCircleIcon
-                    style={{ cursor: "pointer" }}
-                    onClick={handleAddNameAndRename}
-                  />
-                </Grid>
+                  Save
+                </Button>
               </Grid>
-
-              <Grid
-                container
-                // justifyContent="center"
-                style={{ margin: "2rem 0 0 25%" }}
-              >
-                <Grid>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    style={{ marginRight: "2rem" }}
-                    type="submit"
-                  >
-                    Save
-                  </Button>
-                </Grid>
-                <Grid>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => {
-                      const isOk = window.confirm(
-                        "you will lose all your changes, are you sure want to cancel?"
-                      );
-                      if (isOk) {
-                        navigate("/");
-                      }
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </Grid>
+              <Grid>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => {
+                    const isOk = window.confirm(
+                      "you will lose all your changes, are you sure want to cancel?"
+                    );
+                    if (isOk) {
+                      navigate("/");
+                    }
+                  }}
+                >
+                  Cancel
+                </Button>
               </Grid>
-            </div>
+            </Grid>
           </form>
         )}
 
