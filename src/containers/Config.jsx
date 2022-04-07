@@ -5,6 +5,7 @@ import {
   makeStyles,
   Typography,
   Button,
+  Chip,
 } from "@material-ui/core";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
@@ -21,6 +22,7 @@ import {
 import { useLocation } from "react-router-dom";
 import request from "../utils/request";
 import { PopUp } from "../components";
+import Xarrow, { Xwrapper } from "react-xarrows";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,6 +74,75 @@ const useStyles = makeStyles((theme) => ({
     // margin: "54px -37%",
     // width: "200%",
   },
+  processDivRoot: {
+    width: "100%",
+    display: "flex",
+    // height: "60vh",
+  },
+  processContainer: {
+    margin: "1rem 0 0 15rem",
+    alignItems: "center",
+  },
+  processTextfields: {
+    display: "flex",
+    gap: "1rem",
+  },
+  processAttributeWrapper: {
+    maxHeight: "60vh",
+    overflow: "scroll",
+    "&::-webkit-scrollbar": {
+      display: "none",
+    },
+  },
+  processAttribute: {
+    border: "1px solid black",
+    height: "2.5rem",
+    padding: "0rem 1rem",
+    width: "70%",
+    borderRadius: "4px",
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: ".5rem 0",
+    overflow: "scroll",
+    "&::-webkit-scrollbar": {
+      display: "none",
+    },
+  },
+  dummyProcessAttribute: {
+    border: "1px solid black",
+    height: "2.7rem",
+    padding: "0.5rem 1rem",
+    borderRadius: "4px",
+    display: "flex",
+    alignItems: "center",
+    overflow: "scroll",
+    "&::-webkit-scrollbar": {
+      display: "none",
+    },
+  },
+  dummyDataContainer: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    // width:"20%"
+  },
+  FXwrapper: {
+    width: "30px",
+    height: "28px",
+    borderRadius: "35%",
+    border: "2px solid black",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    cursor: "pointer",
+  },
+  chip: (isDragging) => ({
+    marginRight: "0.5rem",
+    position: "realtive",
+    zIndex: isDragging ? "-1" : "1",
+  }),
 }));
 
 const initialValues = {
@@ -89,6 +160,21 @@ const tableHead = [
   "Last Modified Date",
   "Action",
 ];
+
+const initialPoints = {
+  start: "",
+  end: "",
+};
+
+const FX = (props) => {
+  const { onClick = () => {}, id = "" } = props || {};
+  const classes = useStyles();
+  return (
+    <div className={classes.FXwrapper} onClick={onClick}>
+      <Typography>FX</Typography>
+    </div>
+  );
+};
 
 const Config = () => {
   const [configValues, setConfigValues] = useState(initialValues);
@@ -112,9 +198,17 @@ const Config = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [editRename, setEditRename] = useState(null);
 
+  const [processAttributes, setProcessAttributes] = useState([]);
+  const [connectingData, setConnectingData] = useState([]);
+  const [point, setPoint] = useState(initialPoints);
+  const [position, setPosition] = useState({});
+  const [isDragging, setIsDragging] = useState(false);
+
+  const [chipData, setChipData] = useState([]);
+
   const isPopupOpen = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
-  const classes = useStyles();
+  const classes = useStyles(isDragging);
   const navigate = useNavigate();
   const { state } = useLocation();
 
@@ -470,7 +564,102 @@ const Config = () => {
       const onlyFiles = true;
       !data && handlePoolBtnClick(onlyFiles);
     }
+
+    if (activeTab === 2) {
+      const re = async () => {
+        // const r = await handlePoolBtnClick(true);
+        // const id = r.filter((item) => item.config_id === state[0]._id);
+        const url = "/process/624d1faef3018cb784b15b50";
+        const processFileAttributes = await request({
+          URL: url,
+          requestOptions: {
+            method: "GET",
+          },
+        });
+        const { file_attributes } = await processFileAttributes.json();
+        // const { file_attributes } = result || {};
+        setProcessAttributes(file_attributes);
+      };
+      re();
+    }
   }, [activeTab]);
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("Text", ev.target.id);
+  }
+
+  function drop(ev) {
+    ev.preventDefault();
+    const { id } = ev.target || {};
+    var data = ev.dataTransfer.getData("Text");
+    // const tempData = data.replace(/\d+/g, "");
+    const tempID = id.replace(/\d+/g, "");
+    const tempObj = { id: tempID, chips: [data] };
+    if (chipData.length && chipData.some((item) => item.id === tempID)) {
+      const tempChipData = [...chipData];
+      let ind;
+      const d = chipData.filter((item, index) => {
+        if (item.id === tempID) {
+          ind = index;
+        }
+        return item.id === tempID;
+      });
+      d[0].chips.push(data);
+      tempChipData.splice(ind, 1, d[0]);
+      setChipData([...tempChipData]);
+    } else {
+      setChipData((prevData) => [...prevData, tempObj]);
+    }
+    // var nodeCopy = document.getElementById(data).cloneNode(true);
+    // nodeCopy.id = "newId";
+    // ev.target.appendChild(nodeCopy);
+  }
+
+  useEffect(() => {
+    if (point.start.length && point.end.length) {
+      setConnectingData((prevData) => [...prevData, point]);
+      setPoint(initialPoints);
+    }
+  }, [point]);
+
+  const handleChipDelete = (ind, id, chip) => {
+    const tempChipData = [...chipData];
+    const tempConnectingData = connectingData.filter((item, index) => {
+      const tempId = item.end.replace(/\d+/g, "");
+      // const tempStart = item.start.replace(/\d+/g, "");
+      if (tempId === id && item.start === chip) {
+        return item;
+      }
+    });
+    const final = connectingData.filter(
+      (item) => JSON.stringify(item) !== JSON.stringify(tempConnectingData[0])
+    );
+
+    setConnectingData(final);
+    let i;
+    const d = chipData.filter((item, index) => {
+      if (item.id === id) {
+        i = index;
+      }
+      return item.id === id;
+    });
+    d[0].chips.splice(ind, 1);
+    tempChipData.splice(i, 1, d[0]);
+    setChipData(tempChipData);
+  };
+
+  const handleProcessSaveBtnClick = () => {
+    console.log("clicked");
+  };
+
+  const handleProcessCancelBtnClick = () => {
+    console.log("clicked");
+    navigate("/");
+  };
 
   return (
     <div className={classes.root}>
@@ -500,7 +689,7 @@ const Config = () => {
             <CustomTabs
               activeTab={activeTab}
               onChange={handleTabChange}
-              tabs={["Config", "Files"]}
+              tabs={["Config", "Files", "Process"]}
             />
           </div>
 
@@ -531,6 +720,186 @@ const Config = () => {
           </div>
         </div>
         {isLoading && <Spinner />}
+
+        {!isLoading && activeTab === 2 && (
+          <>
+            <div className={classes.processDivRoot}>
+              <Grid
+                container
+                justifyContent="space-between"
+                xs={8}
+                className={classes.processContainer}
+              >
+                <Xwrapper>
+                  <div
+                    id="helperDiv"
+                    style={{
+                      position: "absolute",
+                      transform: "translate(-50%, -50%)",
+                      ...position,
+                    }}
+                  ></div>
+                  <Grid xs={5} item className={classes.processAttributeWrapper}>
+                    {renamedSavedData.length &&
+                      renamedSavedData.map((item, index) => (
+                        <div
+                          key={index}
+                          // onDrop={(e) => drop(e)}
+                          // onDragOver={(e) => allowDrop(e)}
+                        >
+                          <div
+                            className={classes.processAttribute}
+                            draggable={true}
+                            id={item.file_attribute_renamed}
+                            onDragStart={(e) => {
+                              drag(e);
+                              setPoint((prevPoints) => ({
+                                ...prevPoints,
+                                start: item.file_attribute_renamed,
+                              }));
+                              setIsDragging(true);
+                            }}
+                            onDrag={(e) => {
+                              e.preventDefault();
+                              setPosition({
+                                position: "fixed",
+                                left: e.clientX - 30,
+                                top: e.clientY,
+                                transform: "none",
+                              });
+                            }}
+                            onDragEnd={() => {
+                              setPoint(initialPoints);
+                              setPosition({
+                                transform: "translate(-50%, -50%)",
+                              });
+                              setIsDragging(false);
+                            }}
+                          >
+                            {item.file_attribute_renamed}
+                          </div>
+                        </div>
+                      ))}
+
+                    {connectingData.map(
+                      (item) =>
+                        item.start &&
+                        item.end && <Xarrow start={item.start} end={item.end} />
+                    )}
+                    {point.start && (
+                      <Xarrow start={point.start} end="helperDiv" />
+                    )}
+                  </Grid>
+                </Xwrapper>
+                <Grid
+                  xs={5}
+                  item
+                  container
+                  className={classes.processTextfields}
+                >
+                  <Xwrapper>
+                    {processAttributes.map((item, index) => (
+                      <Grid
+                        xs={12}
+                        container
+                        className={classes.dummyDataContainer}
+                        key={index}
+                      >
+                        <Grid
+                          item
+                          xs={5}
+                          id={item.file_attribute_name}
+                          className={classes.dummyProcessAttribute}
+                          draggable={false}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const { id } = e.target || {};
+                            const element = document.getElementById(id);
+                            element.scrollTo(window.innerWidth, 0);
+                            drop(e);
+                            setPoint((prevPoints) => ({
+                              ...prevPoints,
+                              end: item.file_attribute_name,
+                            }));
+                          }}
+                          // onDragStart={(e) => drag(e)}
+                          onDragOver={(e) => allowDrop(e)}
+                        >
+                          {chipData.length
+                            ? chipData.map(
+                                (i, index) =>
+                                  i.id === item.file_attribute_name &&
+                                  i.chips.map((chip, ind) => (
+                                    <Chip
+                                      label={chip}
+                                      key={index + chip}
+                                      className={classes.chip}
+                                      variant="outlined"
+                                      // color="primary"
+                                      onDelete={() =>
+                                        handleChipDelete(ind, i.id, chip)
+                                      }
+                                    />
+                                  ))
+                              )
+                            : null}
+                        </Grid>
+                        <Grid
+                          item
+                          id={index}
+                          xs={5}
+                          className={classes.dummyProcessAttribute}
+                        >
+                          {item.file_attribute_name}
+                        </Grid>
+                        <Grid item xs={1}>
+                          <FX
+                            onClick={() =>
+                              alert(`clicked on ${item.file_attribute_name}`)
+                            }
+                            id={index}
+                          />
+                        </Grid>
+                      </Grid>
+                    ))}
+                  </Xwrapper>
+                </Grid>
+              </Grid>
+            </div>
+            <Grid
+              container
+              item
+              xs={4}
+              justifyContent="center"
+              style={{
+                width: "100%",
+                position: "relative",
+                left: "35%",
+                top: "5%",
+              }}
+            >
+              <Grid item xs={3}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleProcessSaveBtnClick}
+                >
+                  Save
+                </Button>
+              </Grid>
+              <Grid item xs={3}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleProcessCancelBtnClick}
+                >
+                  Cancel
+                </Button>
+              </Grid>
+            </Grid>
+          </>
+        )}
+
         {!isLoading && activeTab === 0 && (
           <form onSubmit={handleSubmit} className={classes.formRoot}>
             <div className={classes.inputsContainer}>
