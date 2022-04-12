@@ -15,6 +15,7 @@ import PlaylistAddCheckIcon from "@material-ui/icons/PlaylistAddCheck";
 import CreateIcon from "@material-ui/icons/Create";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import PopUp from "./PopUp";
+import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 
 const useStyles = makeStyles((theme) => ({
   table: {},
@@ -62,6 +63,7 @@ const CustomTable = (props = {}) => {
     fromFile = false,
     guessSchema = [],
     date = false,
+    onPlayBtnClick = () => {},
   } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -164,6 +166,11 @@ const CustomTable = (props = {}) => {
                       className={classes.renameIcon}
                       fontSize="small"
                       onClick={(e) => handleViewAttributesClick(e, item._id)}
+                    />
+                    <PlayArrowIcon
+                      className={classes.renameIcon}
+                      fontSize="small"
+                      onClick={(e) => onPlayBtnClick()}
                     />
                   </TableCell>
                 )}

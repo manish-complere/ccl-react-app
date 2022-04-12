@@ -3,7 +3,7 @@ import { Tabs, Tab, Paper, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   tabContainer: {
-    margin: theme.spacing(0, 2),
+    // margin: theme.spacing(0, 2),
     "& .MuiTab-textColorPrimary.Mui-selected": {
       border: "3px solid #3f51b5",
       background: "#3f51b5",

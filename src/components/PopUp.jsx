@@ -5,8 +5,15 @@ import {
   Typography,
   Grid,
   Button,
+  TextField,
+  Select,
+  InputAdornment,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@material-ui/core";
 import Textfield from "./Textfield";
+import SearchIcon from "@material-ui/icons/Search";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -15,6 +22,59 @@ const useStyles = makeStyles((theme) => ({
   wrapper: {
     padding: theme.spacing(1, 3),
   },
+  processFunctionWrapper: {
+    padding: theme.spacing(2),
+    width: theme.spacing(110),
+    minHeight: theme.spacing(40),
+  },
+  tabs: {
+    background: "rgba(0,0,0,0.1)",
+    margin: theme.spacing(0, 1),
+    padding: theme.spacing(1, 2),
+    borderRadius: theme.spacing(1),
+    height: theme.spacing(3),
+    cursor: "pointer",
+    "&:hover": {
+      background: "rgba(0,0,255,0.2)",
+    },
+  },
+  aTab: {
+    background: "rgba(0,0,255,0.2)",
+  },
+  formulaWrapper: {
+    margin: theme.spacing(1, 0),
+    padding: theme.spacing(1),
+    maxHeight: theme.spacing(22),
+    border: "1px solid rgba(0,0,0,0.1)",
+    overflowY: "scroll",
+    // "&::-webkit-scrollbar": {
+    //   display: "none",
+    // },
+  },
+  listItem: {
+    listStyle: "none",
+    margin: theme.spacing(0.6, 0),
+    padding: theme.spacing(0, 1),
+    cursor: "pointer",
+    "&:hover": {
+      background: "rgba(0,0,0,0.1)",
+    },
+  },
+  // typo: {
+  //   cursor: "pointer",
+  //   margin: theme.spacing(1, 0),
+  //   // border: "1px solid rgba(0,0,0,0.5)",
+  //   boxShadow: "0 0 0 1px rgba(0,0,0,0.5)",
+  //   padding: theme.spacing(1, 2),
+  //   borderRadius: theme.spacing(1),
+  //   letterSpacing: "0.5px",
+  //   "&:hover": {
+  //     // border: "1px solid #000",
+  //     // boxShadow:"none",
+  //     backgroundColor: "rgba(255,0,0,0.4)",
+  //     color: "#fff",
+  //   },
+  // },
 }));
 
 const PopUp = (props = {}) => {
@@ -28,9 +88,41 @@ const PopUp = (props = {}) => {
     file_id = "",
     isRename = false,
     showAttributes = false,
+    idRenameClicked = false,
+    isProcesFnsClicked = false,
+    formulaList = [],
+    onSaveFunction = () => {},
+    onCancelClick = () => {},
+    columns = [],
+    indexOfProcessAttribute = "",
   } = props;
 
   const [tempData, setTempData] = useState(data);
+  const [activeTab, setActiveTab] = useState("functions");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedFormula, setSelectedFormula] = useState("");
+  const [selectedColumn, setSelectedColumn] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const [formula, setFormula] = useState("");
+  const [shouldMessageVisible, setShouldMessageVisible] = useState(false);
+
+  const [formulaCategories, setFormulaCategories] = useState([]);
+  const [formulas, setFormulas] = useState([]);
+  const [parametersReq, setParametersReq] = useState("");
+
+  useEffect(() => {
+    if (formulaList && Object.values(formulaList).length) {
+      const tempCategory = Object.values(formulaList)[0].map(
+        (item) => item.formula_category
+      );
+      const filteredCategories = [...new Set(tempCategory)];
+      const tempFormulas = Object.values(formulaList)[0].map(
+        (item) => item.formula_name
+      );
+      setFormulaCategories(["All", ...filteredCategories]);
+      setFormulas(tempFormulas);
+    }
+  }, [formulaList]);
 
   const classes = useStyles();
 
@@ -55,9 +147,69 @@ const PopUp = (props = {}) => {
     }
   };
 
+  const handleAddFormula = (f) => {
+    setFormula(f);
+  };
+
+  const handleColumnFormula = (value) => {
+    setSelectedColumn(value);
+    if (
+      selectedColumns.length &&
+      !selectedColumns.some((item) => item === value)
+    ) {
+      selectedColumn.length && setSelectedColumns((p) => [...p, value]);
+    }
+    if (!selectedColumns.length) {
+      setSelectedColumns((p) => [...p, value]);
+    }
+  };
+
+  const handleFunctionCategoryChange = (e) => {
+    const { name, value } = e.target || {};
+    setSelectedCategory(value);
+    const tempFormulas =
+      value === "All"
+        ? Object.values(formulaList)[0]
+            .map((item) => item.formula_name)
+            .filter((item) => item !== undefined)
+        : Object.values(formulaList)[0]
+            .map((item) => {
+              if (item.formula_category === value) {
+                return item.formula_name;
+              }
+            })
+            .filter((item) => item !== undefined);
+    setFormulas(tempFormulas);
+  };
+
   useEffect(() => {
     setTempData(data);
   }, [data]);
+
+  useEffect(() => {
+    const tempValue = `${formula}("${
+      selectedColumns.length && selectedColumns.length < 1
+        ? selectedColumns[0]
+        : selectedColumns.join(",")
+    }")`;
+    formula && setSelectedFormula(tempValue);
+  }, [formula, selectedColumn]);
+
+  useEffect(() => {
+    if (selectedFormula.length && !selectedColumn.length) {
+      setShouldMessageVisible(true);
+    } else {
+      setShouldMessageVisible(false);
+    }
+    const tempF = selectedFormula.slice(0, selectedFormula.indexOf("("));
+    const tempInd =
+      formulaList &&
+      Object.values(formulaList).length &&
+      Object.values(formulaList)[0].filter(
+        (item, index) => item.formula_name === tempF
+      );
+    tempInd.length && setParametersReq(tempInd[0].required_parameters);
+  }, [selectedFormula]);
 
   return (
     <Popover
@@ -74,7 +226,7 @@ const PopUp = (props = {}) => {
         horizontal: "left",
       }}
     >
-      {!!isRename && (
+      {!!isRename && !!idRenameClicked && (
         <Grid className={classes.container}>
           <Grid
             container
@@ -167,6 +319,247 @@ const PopUp = (props = {}) => {
           ) : (
             <div className={classes.wrapper}>No Attribute</div>
           )}
+        </div>
+      )}
+      {isProcesFnsClicked && (
+        <div className={classes.processFunctionWrapper}>
+          <Grid
+            container
+            xs={12}
+            justifyContent="space-between"
+            style={{ padding: "1rem 0" }}
+          >
+            <Grid item xs={6}>
+              <TextField
+                type="text"
+                name="formulas"
+                multiline={true}
+                variant="outlined"
+                fullWidth={true}
+                minRows={12}
+                value={selectedFormula || indexOfProcessAttribute}
+                onChange={(e) => {
+                  const { name, value } = e.target || {};
+                  setSelectedFormula(value);
+                }}
+              />
+            </Grid>
+            <Grid container item xs={5}>
+              <Grid
+                item
+                container
+                xs={12}
+                justifyContent="center"
+                // alignItems="center"
+              >
+                <div
+                  className={` ${classes.tabs} ${
+                    activeTab == "columns" ? classes.aTab : ""
+                  }`}
+                  onClick={() => setActiveTab("columns")}
+                >
+                  Columns
+                </div>
+                <div
+                  className={` ${classes.tabs} ${
+                    activeTab == "functions" ? classes.aTab : ""
+                  }`}
+                  onClick={() => setActiveTab("functions")}
+                >
+                  Functions
+                </div>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                style={{
+                  margin: "0.8rem 0",
+                  // border: "1px solid black",
+                  width: "100%",
+                  height: "25vh",
+                }}
+              >
+                <Grid item xs={12}>
+                  {activeTab === "functions" ? (
+                    <>
+                      <Grid
+                        container
+                        item
+                        xs={12}
+                        justifyContent="space-between"
+                      >
+                        <Grid item xs={5}>
+                          <FormControl
+                            fullWidth={true}
+                            variant="outlined"
+                            size="small"
+                          >
+                            <InputLabel>Select Category</InputLabel>
+                            <Select
+                              labelId="fns_categories"
+                              id="fns_categories"
+                              value={selectedCategory}
+                              onChange={handleFunctionCategoryChange}
+                              fullWidth={true}
+                              size="small"
+                              label="select category"
+                            >
+                              {formulaCategories.map((item, index) => (
+                                <MenuItem value={item} key={index}>
+                                  {item}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            type="text"
+                            name="formulas"
+                            variant="outlined"
+                            fullWidth={true}
+                            size="small"
+                            // value={selectedFormula}
+                            label="search"
+                            onChange={(e) => {
+                              const { name, value } = e.target || {};
+                              const tempFormulas =
+                                selectedCategory !== "All"
+                                  ? Object.values(formulaList)[0]
+                                      .map((item) => {
+                                        if (
+                                          item.formula_name.includes(value) &&
+                                          item.formula_category ===
+                                            selectedCategory
+                                        ) {
+                                          return item.formula_name;
+                                        }
+                                      })
+                                      .filter((item) => item !== undefined)
+                                  : Object.values(formulaList)[0]
+                                      .map((item) => {
+                                        if (item.formula_name.includes(value)) {
+                                          return item.formula_name;
+                                        }
+                                      })
+                                      .filter((item) => item !== undefined);
+                              setFormulas(tempFormulas);
+                            }}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <SearchIcon />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+                      <div className={classes.formulaWrapper}>
+                        {
+                          formulas.map((item, index) => (
+                            // item.name === selectedCategory &&
+                            // item.formulas.map((formula) => (
+                            <li
+                              onClick={() => handleAddFormula(item)}
+                              className={classes.listItem}
+                              key={index}
+                            >
+                              {item}
+                            </li>
+                          ))
+                          // ))
+                        }
+                      </div>
+                    </>
+                  ) : (
+                    <div className={classes.formulaWrapper}>
+                      {columns.length &&
+                        columns.map((item, index) => (
+                          <li
+                            className={classes.listItem}
+                            onClick={() =>
+                              handleColumnFormula(item.file_attribute_name)
+                            }
+                          >
+                            {item.file_attribute_name}
+                          </li>
+                        ))}
+                    </div>
+                  )}
+                </Grid>
+              </Grid>
+            </Grid>
+            {!!shouldMessageVisible && (
+              <Grid item xs={12}>
+                <Typography
+                  style={{
+                    color: "rgb(255,0,0,0.5)",
+                    margin: "0.8rem 0 0 0",
+                  }}
+                >
+                  you need to add atleast {parametersReq.toString()} column to
+                  the formula{" "}
+                </Typography>
+              </Grid>
+            )}
+            <Grid
+              item
+              container
+              xs={12}
+              style={{
+                textAlign: "center",
+                display: "flex",
+                justifyContent: "center",
+                margin: "1rem 0 0 0",
+              }}
+            >
+              <Grid item xs={2}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth={true}
+                  onClick={() => {
+                    let ind = "";
+                    columns.map((item, index) => {
+                      if (item.file_attribute_name === selectedColumn) {
+                        ind = index;
+                      }
+                    });
+                    onSaveFunction(selectedFormula, {
+                      starting_point: `${selectedColumn}${ind}`,
+                    });
+                    setSelectedFormula("");
+                    setSelectedColumns([]);
+                    setSelectedColumn("");
+                    setActiveTab("functions");
+                    setFormula("");
+                  }}
+                  disabled={!selectedFormula.length || !selectedColumn.length}
+                >
+                  Save
+                </Button>
+              </Grid>
+              <Grid item xs={2}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  fullWidth={true}
+                  style={{ margin: "0 1rem" }}
+                  onClick={() => {
+                    onCancelClick();
+                    setSelectedFormula("");
+                    setSelectedColumns([]);
+                    setSelectedColumn("");
+                    setActiveTab("functions");
+                    setFormula("");
+                  }}
+                >
+                  cancel
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
         </div>
       )}
     </Popover>

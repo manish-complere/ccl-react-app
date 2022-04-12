@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   Chip,
+  TextField,
 } from "@material-ui/core";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
@@ -23,6 +24,7 @@ import { useLocation } from "react-router-dom";
 import request from "../utils/request";
 import { PopUp } from "../components";
 import Xarrow, { Xwrapper } from "react-xarrows";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -137,12 +139,20 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
     alignItems: "center",
     cursor: "pointer",
+    padding: "0.2rem 0.5rem",
   },
   chip: (isDragging) => ({
     marginRight: "0.5rem",
     position: "realtive",
     zIndex: isDragging ? "-1" : "1",
   }),
+  option: {
+    fontSize: 15,
+    "& > span": {
+      marginRight: 10,
+      fontSize: 18,
+    },
+  },
 }));
 
 const initialValues = {
@@ -203,8 +213,18 @@ const Config = () => {
   const [point, setPoint] = useState(initialPoints);
   const [position, setPosition] = useState({});
   const [isDragging, setIsDragging] = useState(false);
-
+  const [isRenamedClicked, setIsRenamedClicked] = useState(false);
+  const [isProcesFnsClicked, setIsProcesFnsClicked] = useState(false);
+  const [formulaList, setFormulaList] = useState([]);
   const [chipData, setChipData] = useState([]);
+  const [selectedFunction, setSelectedFunction] = useState({});
+  const [currentClickedFnIndex, setCurrentClickedFnIndex] = useState("");
+  const [processList, setProcessList] = useState([]);
+  const [selectedProcess, setSelectedProcess] = useState("");
+  const [processNames, setProcessNames] = useState([]);
+  const [selectedFormulasFromPopup, setSelectedFormulasFromPopup] = useState(
+    {}
+  );
 
   const isPopupOpen = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
@@ -391,6 +411,7 @@ const Config = () => {
   };
 
   const handleRename = async (event, _id) => {
+    setIsRenamedClicked(true);
     setFileId(_id);
     setAnchorEl(event.currentTarget);
     const URL = `/map_user_defined_schema/${_id}`;
@@ -449,6 +470,8 @@ const Config = () => {
   const handlePopupClose = () => {
     setAnchorEl(null);
     setRenamedData([]);
+    setIsRenamedClicked(false);
+    setIsProcesFnsClicked(false);
   };
 
   const handleAttributesSave = async (data, _id) => {
@@ -466,6 +489,7 @@ const Config = () => {
     });
     setRenamedSavedData(data);
     setActiveTab(0);
+    setIsRenamedClicked(false);
   };
 
   const handleAttributeNameAndRenameChange = (e) => {
@@ -567,22 +591,45 @@ const Config = () => {
 
     if (activeTab === 2) {
       const re = async () => {
-        // const r = await handlePoolBtnClick(true);
-        // const id = r.filter((item) => item.config_id === state[0]._id);
-        const url = "/process/624d1faef3018cb784b15b50";
-        const processFileAttributes = await request({
-          URL: url,
-          requestOptions: {
-            method: "GET",
-          },
-        });
-        const { file_attributes } = await processFileAttributes.json();
-        // const { file_attributes } = result || {};
-        setProcessAttributes(file_attributes);
+        try {
+          const processURL = "/process";
+          const processResponse = await request({
+            URL: processURL,
+            requestOptions: {
+              method: "GET",
+            },
+          });
+          const result = await processResponse.json();
+          if (result.length) {
+            const a = result.map((item) => {
+              return { process_name: item.process_name, process_id: item._id };
+            });
+            setProcessNames(a);
+            setProcessList(result);
+          }
+        } catch (e) {
+          console.log(e);
+        }
       };
       re();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    const filteredData = processList.filter(
+      (item, index) => item.process_name === selectedProcess.process_name
+    );
+    if (filteredData.length) {
+      const { file_attributes } = filteredData[0] || {};
+      setProcessAttributes(file_attributes);
+    }
+    if (processAttributes.length) {
+      setConnectingData([]);
+      // setFormulaList([]);
+      setChipData([]);
+      setSelectedFunction({});
+    }
+  }, [selectedProcess]);
 
   function allowDrop(ev) {
     ev.preventDefault();
@@ -596,9 +643,9 @@ const Config = () => {
     ev.preventDefault();
     const { id } = ev.target || {};
     var data = ev.dataTransfer.getData("Text");
-    // const tempData = data.replace(/\d+/g, "");
+    const tempData = data.replace(/\d+/g, "");
     const tempID = id.replace(/\d+/g, "");
-    const tempObj = { id: tempID, chips: [data] };
+    const tempObj = { id: tempID, chips: [tempData] };
     if (chipData.length && chipData.some((item) => item.id === tempID)) {
       const tempChipData = [...chipData];
       let ind;
@@ -608,7 +655,7 @@ const Config = () => {
         }
         return item.id === tempID;
       });
-      d[0].chips.push(data);
+      d[0].chips.push(tempData);
       tempChipData.splice(ind, 1, d[0]);
       setChipData([...tempChipData]);
     } else {
@@ -629,9 +676,8 @@ const Config = () => {
   const handleChipDelete = (ind, id, chip) => {
     const tempChipData = [...chipData];
     const tempConnectingData = connectingData.filter((item, index) => {
-      const tempId = item.end.replace(/\d+/g, "");
-      // const tempStart = item.start.replace(/\d+/g, "");
-      if (tempId === id && item.start === chip) {
+      const tempStart = item.start.replace(/\d+/g, "");
+      if (item.end === id && tempStart === chip) {
         return item;
       }
     });
@@ -652,14 +698,108 @@ const Config = () => {
     setChipData(tempChipData);
   };
 
-  const handleProcessSaveBtnClick = () => {
-    console.log("clicked");
+  const handleProcessSaveBtnClick = async () => {
+    const tempData = [];
+    chipData.forEach((item, index) => {
+      tempData.push({
+        target_attribute: item.id,
+        source_attribute: item.chips.length > 1 ? item.chips : item.chips[0],
+        formula: selectedFunction[index] ? selectedFunction[index] : "",
+      });
+    });
+    const finalProcessData = {
+      config_id: state[0]._id,
+      process_id: selectedProcess.process_id,
+      attribute_mapping: tempData,
+    };
+    console.log(finalProcessData);
+    const URL = "/mapping";
+    // try {
+    //   setIsLoading(true);
+    //   const response = await request({
+    //     URL,
+    //     requestOptions: {
+    //       method: "POST",
+    //       body: JSON.stringify(finalProcessData),
+    //     },
+    //   });
+    //   if (response.status === 200) {
+    //     setIsLoading(false);
+    //   }
+    //   console.log(response);
+    // } catch (e) {
+    //   console.log(e);
+    //   setIsLoading(false);
+    // }
   };
 
   const handleProcessCancelBtnClick = () => {
-    console.log("clicked");
     navigate("/");
   };
+
+  const handleFunctionClick = async (e, id) => {
+    let endPt = "";
+    processAttributes.forEach((item, index) => {
+      if (index === id) {
+        endPt = item.file_attribute_name;
+      }
+    });
+    setPoint((prevPoints) => ({ ...prevPoints, end: endPt }));
+    setIsProcesFnsClicked(true);
+    setAnchorEl(e.currentTarget);
+    const URL = "/formula";
+    try {
+      const response = await request({
+        URL,
+        requestOptions: {
+          method: "GET",
+        },
+      });
+      if (response.status === 200) {
+        const result = await response.json();
+        setFormulaList(result);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const handleFunctionSave = (fn, { starting_point }, id) => {
+    setSelectedFunction((prevValues) => ({
+      ...prevValues,
+      [currentClickedFnIndex]: fn,
+    }));
+    setSelectedFormulasFromPopup((prevData) => ({ ...prevData, [id]: fn }));
+    setAnchorEl(null);
+    setIsProcesFnsClicked(false);
+    setPoint((prevPoints) => ({ ...prevPoints, start: starting_point }));
+
+    // setting the chip Data
+    const tempData = starting_point.replace(/\d+/g, "");
+    const tempObj = { id: point.end, chips: [tempData] };
+    if (chipData.length && chipData.some((item) => item.id === point.end)) {
+      const tempChipData = [...chipData];
+      let ind;
+      const d = chipData.filter((item, index) => {
+        if (item.id === point.end) {
+          ind = index;
+        }
+        return item.id === point.end;
+      });
+      d[0].chips.push(tempData);
+      tempChipData.splice(ind, 1, d[0]);
+      setChipData([...tempChipData]);
+    } else {
+      setChipData((prevData) => [...prevData, tempObj]);
+    }
+  };
+
+  const handleCancelBtnClick = () => {
+    setAnchorEl(null);
+    setIsProcesFnsClicked(false);
+  };
+
+  const handlePlayBtnClick = () => {};
 
   return (
     <div className={classes.root}>
@@ -750,12 +890,12 @@ const Config = () => {
                           <div
                             className={classes.processAttribute}
                             draggable={true}
-                            id={item.file_attribute_renamed}
+                            id={item.file_attribute_renamed + index}
                             onDragStart={(e) => {
                               drag(e);
                               setPoint((prevPoints) => ({
                                 ...prevPoints,
-                                start: item.file_attribute_renamed,
+                                start: item.file_attribute_renamed + index,
                               }));
                               setIsDragging(true);
                             }}
@@ -782,9 +922,15 @@ const Config = () => {
                       ))}
 
                     {connectingData.map(
-                      (item) =>
+                      (item, index) =>
                         item.start &&
-                        item.end && <Xarrow start={item.start} end={item.end} />
+                        item.end && (
+                          <Xarrow
+                            key={index}
+                            start={item.start}
+                            end={item.end}
+                          />
+                        )
                     )}
                     {point.start && (
                       <Xarrow start={point.start} end="helperDiv" />
@@ -797,71 +943,119 @@ const Config = () => {
                   container
                   className={classes.processTextfields}
                 >
+                  <Autocomplete
+                    id="process_name"
+                    style={{ width: 300 }}
+                    options={processNames}
+                    classes={{
+                      option: classes.option,
+                    }}
+                    size="small"
+                    autoHighlight
+                    getOptionLabel={(option) => option.process_name}
+                    renderOption={(option) => (
+                      <React.Fragment>{option.process_name}</React.Fragment>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Choose a process"
+                        variant="outlined"
+                        inputProps={{
+                          ...params.inputProps,
+                          autoComplete: "new-password",
+                        }}
+                      />
+                    )}
+                    getOptionSelected={(option, value) => {
+                      setSelectedProcess(value);
+                    }}
+                  />
                   <Xwrapper>
-                    {processAttributes.map((item, index) => (
-                      <Grid
-                        xs={12}
-                        container
-                        className={classes.dummyDataContainer}
-                        key={index}
-                      >
+                    {selectedProcess &&
+                      processAttributes.map((item, index) => (
                         <Grid
-                          item
-                          xs={5}
-                          id={item.file_attribute_name}
-                          className={classes.dummyProcessAttribute}
-                          draggable={false}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const { id } = e.target || {};
-                            const element = document.getElementById(id);
-                            element.scrollTo(window.innerWidth, 0);
-                            drop(e);
-                            setPoint((prevPoints) => ({
-                              ...prevPoints,
-                              end: item.file_attribute_name,
-                            }));
-                          }}
-                          // onDragStart={(e) => drag(e)}
-                          onDragOver={(e) => allowDrop(e)}
+                          xs={12}
+                          container
+                          className={classes.dummyDataContainer}
+                          key={index}
                         >
-                          {chipData.length
-                            ? chipData.map(
-                                (i, index) =>
-                                  i.id === item.file_attribute_name &&
-                                  i.chips.map((chip, ind) => (
-                                    <Chip
-                                      label={chip}
-                                      key={index + chip}
-                                      className={classes.chip}
-                                      variant="outlined"
-                                      // color="primary"
-                                      onDelete={() =>
-                                        handleChipDelete(ind, i.id, chip)
-                                      }
-                                    />
-                                  ))
-                              )
-                            : null}
-                        </Grid>
-                        <Grid
-                          item
-                          id={index}
-                          xs={5}
-                          className={classes.dummyProcessAttribute}
-                        >
-                          {item.file_attribute_name}
-                        </Grid>
-                        <Grid item xs={1}>
-                          <FX
-                            onClick={() =>
-                              alert(`clicked on ${item.file_attribute_name}`)
-                            }
+                          <Grid
+                            item
+                            xs={5}
+                            id={item.file_attribute_name}
+                            name={item.file_attribute_name}
+                            className={classes.dummyProcessAttribute}
+                            draggable={false}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const { id } = e.target || {};
+                              const element = document.getElementById(id);
+                              element.scrollTo(window.innerWidth, 0);
+                              drop(e);
+                              setPoint((prevPoints) => ({
+                                ...prevPoints,
+                                end: item.file_attribute_name,
+                              }));
+                            }}
+                            // onDragStart={(e) => drag(e)}
+                            onDragOver={(e) => allowDrop(e)}
+                          >
+                            {chipData.length
+                              ? chipData.map(
+                                  (i, index) =>
+                                    i.id === item.file_attribute_name &&
+                                    i.chips.map((chip, ind) => (
+                                      <Chip
+                                        label={chip}
+                                        key={index + chip}
+                                        className={classes.chip}
+                                        variant="outlined"
+                                        // color="primary"
+                                        onDelete={() =>
+                                          handleChipDelete(ind, i.id, chip)
+                                        }
+                                      />
+                                    ))
+                                )
+                              : null}
+                          </Grid>
+                          <Grid
+                            item
                             id={index}
-                          />
+                            xs={5}
+                            className={classes.dummyProcessAttribute}
+                          >
+                            {item.file_attribute_name}
+                          </Grid>
+                          <Grid
+                            item
+                            xs={1}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <FX
+                              onClick={(e) => {
+                                handleFunctionClick(e, index);
+                                setCurrentClickedFnIndex(index);
+                              }}
+                              id={index}
+                            />
+                            {selectedFunction &&
+                            Object.keys(selectedFunction).length &&
+                            selectedFunction[index] ? (
+                              <Chip
+                                variant="outlined"
+                                label={selectedFunction[index]}
+                                style={{ margin: "0 0.5rem" }}
+                              />
+                            ) : null}
+                          </Grid>
                         </Grid>
-                      </Grid>
-                    ))}
+                      ))}
                   </Xwrapper>
                 </Grid>
               </Grid>
@@ -1216,7 +1410,7 @@ const Config = () => {
           </form>
         )}
 
-        {/* pop up */}
+        {/* attribute pop up */}
         <PopUp
           id={id}
           open={isPopupOpen}
@@ -1226,6 +1420,13 @@ const Config = () => {
           handleSave={handleAttributesSave}
           file_id={fileId}
           isRename={true}
+          idRenameClicked={isRenamedClicked}
+          isProcesFnsClicked={isProcesFnsClicked}
+          formulaList={formulaList}
+          onSaveFunction={handleFunctionSave}
+          onCancelClick={handleCancelBtnClick}
+          columns={renamedSavedData}
+          indexOfProcessAttribute={selectedFunction[currentClickedFnIndex]}
         />
 
         <CustomizedSnackbars
@@ -1247,6 +1448,7 @@ const Config = () => {
               onDelete={handleDelete}
               onRename={handleRename}
               onValidate={handleValidate}
+              onPlayBtnClick={handlePlayBtnClick}
               fromFile={true}
               date={true}
             />
