@@ -111,14 +111,10 @@ const PopUp = (props = {}) => {
   const [parametersReq, setParametersReq] = useState("");
 
   useEffect(() => {
-    if (formulaList && Object.values(formulaList).length) {
-      const tempCategory = Object.values(formulaList)[0].map(
-        (item) => item.formula_category
-      );
+    if (formulaList && formulaList.length) {
+      const tempCategory = formulaList.map((item) => item.formula_category);
       const filteredCategories = [...new Set(tempCategory)];
-      const tempFormulas = Object.values(formulaList)[0].map(
-        (item) => item.formula_name
-      );
+      const tempFormulas = formulaList.map((item) => item.formula_name);
       setFormulaCategories(["All", ...filteredCategories]);
       setFormulas(tempFormulas);
     }
@@ -169,10 +165,10 @@ const PopUp = (props = {}) => {
     setSelectedCategory(value);
     const tempFormulas =
       value === "All"
-        ? Object.values(formulaList)[0]
+        ? formulaList
             .map((item) => item.formula_name)
             .filter((item) => item !== undefined)
-        : Object.values(formulaList)[0]
+        : formulaList
             .map((item) => {
               if (item.formula_category === value) {
                 return item.formula_name;
@@ -204,10 +200,8 @@ const PopUp = (props = {}) => {
     const tempF = selectedFormula.slice(0, selectedFormula.indexOf("("));
     const tempInd =
       formulaList &&
-      Object.values(formulaList).length &&
-      Object.values(formulaList)[0].filter(
-        (item, index) => item.formula_name === tempF
-      );
+      formulaList.length &&
+      formulaList.filter((item, index) => item.formula_name === tempF);
     tempInd.length && setParametersReq(tempInd[0].required_parameters);
   }, [selectedFormula]);
 
@@ -425,7 +419,7 @@ const PopUp = (props = {}) => {
                               const { name, value } = e.target || {};
                               const tempFormulas =
                                 selectedCategory !== "All"
-                                  ? Object.values(formulaList)[0]
+                                  ? formulaList
                                       .map((item) => {
                                         if (
                                           item.formula_name.includes(value) &&
@@ -436,7 +430,7 @@ const PopUp = (props = {}) => {
                                         }
                                       })
                                       .filter((item) => item !== undefined)
-                                  : Object.values(formulaList)[0]
+                                  : formulaList
                                       .map((item) => {
                                         if (item.formula_name.includes(value)) {
                                           return item.formula_name;

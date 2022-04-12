@@ -757,7 +757,8 @@ const Config = () => {
       });
       if (response.status === 200) {
         const result = await response.json();
-        setFormulaList(result);
+        console.log(result, "ressss");
+        setFormulaList(result[0].formula_names);
       }
     } catch (e) {
       console.log(e);
@@ -799,7 +800,23 @@ const Config = () => {
     setIsProcesFnsClicked(false);
   };
 
-  const handlePlayBtnClick = () => {};
+  const handlePlayBtnClick = async (_id) => {
+    const URL = `/run/${_id}`;
+    try {
+      const response = await request({
+        URL,
+        requestOptions: {
+          method: "GET",
+        },
+      });
+      const msg = await response.text();
+      setSeverity("success");
+      setMessage(msg);
+      setOpen(true);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <div className={classes.root}>

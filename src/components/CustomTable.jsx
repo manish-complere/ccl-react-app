@@ -170,7 +170,7 @@ const CustomTable = (props = {}) => {
                     <PlayArrowIcon
                       className={classes.renameIcon}
                       fontSize="small"
-                      onClick={(e) => onPlayBtnClick()}
+                      onClick={(e) => onPlayBtnClick(item._id)}
                     />
                   </TableCell>
                 )}
