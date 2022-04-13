@@ -624,6 +624,7 @@ const Config = () => {
           const result = await response.json();
           const { attribute_mapping, process_id, status, _id, config_id } =
             result;
+          setProcessID(process_id);
           const processName = await getProcessNameFromId(process_id);
           setSelectedProcess(processName);
           attribute_mapping.forEach((attribute, index) => {
@@ -636,13 +637,7 @@ const Config = () => {
             setChipData((prevData) => [...prevData, tempObj]);
             setSelectedFunction((p) => ({
               ...p,
-              [index]:
-                attribute.formula &&
-                `${attribute.formula}("${
-                  Array.isArray(attribute.source_attribute)
-                    ? attribute.source_attribute.join(",")
-                    : attribute.source_attribute
-                }")`,
+              [index]: attribute.formula && `${attribute.formula}`,
             }));
 
             if (Array.isArray(attribute.source_attribute)) {
@@ -680,6 +675,8 @@ const Config = () => {
       !chipData.length && !connectingData.length && getMappingData();
     }
   }, [activeTab]);
+
+  console.log("selected", selectedFunction);
 
   const getProcessNameFromId = async (_id) => {
     try {
@@ -794,29 +791,49 @@ const Config = () => {
     });
     const finalProcessData = {
       config_id: state[0]._id,
-      // process_id: selectedProcess.process_id,
-      process_id: "62565f58d9a5f69911f1128c",
+      process_id: processID,
       attribute_mapping: tempData,
     };
-    console.log(finalProcessData);
-    // const URL = "/mapping";
-    // try {
-    //   setIsLoading(true);
-    //   const response = await request({
-    //     URL,
-    //     requestOptions: {
-    //       method: "POST",
-    //       body: JSON.stringify(finalProcessData),
-    //     },
-    //   });
-    //   if (response.status === 200) {
-    //     setIsLoading(false);
-    //   }
-    //   console.log(response);
-    // } catch (e) {
-    //   console.log(e);
-    //   setIsLoading(false);
-    // }
+    const URL = "/mapping";
+    try {
+      setIsLoading(true);
+      const response = await request({
+        URL,
+        requestOptions: {
+          method: "POST",
+          body: JSON.stringify(finalProcessData),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      });
+      const mappingID = await response.text();
+      console.log("ggg",mappingID)
+      if (response.status === 200) {
+        setIsLoading(false);
+        try {
+          const URL = `/is_mapping_valid/${mappingID}`;
+          const response = await request({
+            URL,
+            requestOptions: {
+              method: "GET",
+            },
+          });
+          const result = await response.json();
+          if (response.status == 200) {
+            setSeverity(() => (result.status === 200 ? "success" : "error"));
+            setMessage(result.message);
+            setOpen(true);
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      console.log(response);
+    } catch (e) {
+      console.log(e);
+      setIsLoading(false);
+    }
   };
 
   const handleProcessCancelBtnClick = () => {
@@ -1087,7 +1104,6 @@ const Config = () => {
                           className={classes.dummyDataContainer}
                           key={index}
                         >
-                          {console.log(item, "item")}
                           <Grid
                             item
                             xs={5}
