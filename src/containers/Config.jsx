@@ -225,6 +225,7 @@ const Config = () => {
   const [selectedFormulasFromPopup, setSelectedFormulasFromPopup] = useState(
     {}
   );
+  const [processID, setProcessID] = useState("");
 
   const isPopupOpen = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
@@ -602,7 +603,7 @@ const Config = () => {
           const result = await processResponse.json();
           if (result.length) {
             const a = result.map((item) => {
-              return { process_name: item.process_name, process_id: item._id };
+              return item.process_name;
             });
             setProcessNames(a);
             setProcessList(result);
@@ -611,13 +612,95 @@ const Config = () => {
           console.log(e);
         }
       };
+      const getMappingData = async () => {
+        const URL = `/mapping/${state[0]._id}`;
+        try {
+          const response = await request({
+            URL,
+            requestOptions: {
+              method: "GET",
+            },
+          });
+          const result = await response.json();
+          const { attribute_mapping, process_id, status, _id, config_id } =
+            result;
+          const processName = await getProcessNameFromId(process_id);
+          setSelectedProcess(processName);
+          attribute_mapping.forEach((attribute, index) => {
+            const tempObj = {
+              id: attribute.target_attribute,
+              chips: Array.isArray(attribute.source_attribute)
+                ? attribute.source_attribute
+                : [attribute.source_attribute],
+            };
+            setChipData((prevData) => [...prevData, tempObj]);
+            setSelectedFunction((p) => ({
+              ...p,
+              [index]:
+                attribute.formula &&
+                `${attribute.formula}("${
+                  Array.isArray(attribute.source_attribute)
+                    ? attribute.source_attribute.join(",")
+                    : attribute.source_attribute
+                }")`,
+            }));
+
+            if (Array.isArray(attribute.source_attribute)) {
+              attribute.source_attribute.forEach((item) => {
+                renamedSavedData.forEach((attr, ind) => {
+                  if (attr.file_attribute_renamed === item) {
+                    setConnectingData((prevPoints) => [
+                      ...prevPoints,
+                      { start: item + ind, end: attribute.target_attribute },
+                    ]);
+                  }
+                });
+              });
+            } else {
+              renamedSavedData.forEach((attr, ind) => {
+                if (
+                  attr.file_attribute_renamed === attribute.source_attribute
+                ) {
+                  setConnectingData((prevPoints) => [
+                    ...prevPoints,
+                    {
+                      start: attribute.source_attribute + ind,
+                      end: attribute.target_attribute,
+                    },
+                  ]);
+                }
+              });
+            }
+          });
+        } catch (e) {
+          console.log(e);
+        }
+      };
       re();
+      !chipData.length && !connectingData.length && getMappingData();
     }
   }, [activeTab]);
 
+  const getProcessNameFromId = async (_id) => {
+    try {
+      const URL = `/process/62565f58d9a5f69911f1128c`;
+      const response = await request({
+        URL,
+        requestOptions: {
+          method: "GET",
+        },
+      });
+      const result = await response.json();
+      const { process_name } = result || {};
+      return process_name;
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   useEffect(() => {
     const filteredData = processList.filter(
-      (item, index) => item.process_name === selectedProcess.process_name
+      (item, index) => item.process_name === selectedProcess
     );
     if (filteredData.length) {
       const { file_attributes } = filteredData[0] || {};
@@ -655,7 +738,9 @@ const Config = () => {
         }
         return item.id === tempID;
       });
-      d[0].chips.push(tempData);
+      if (!d[0].chips.includes(tempData)) {
+        d[0].chips.push(tempData);
+      }
       tempChipData.splice(ind, 1, d[0]);
       setChipData([...tempChipData]);
     } else {
@@ -709,11 +794,12 @@ const Config = () => {
     });
     const finalProcessData = {
       config_id: state[0]._id,
-      process_id: selectedProcess.process_id,
+      // process_id: selectedProcess.process_id,
+      process_id: "62565f58d9a5f69911f1128c",
       attribute_mapping: tempData,
     };
     console.log(finalProcessData);
-    const URL = "/mapping";
+    // const URL = "/mapping";
     // try {
     //   setIsLoading(true);
     //   const response = await request({
@@ -787,7 +873,9 @@ const Config = () => {
         }
         return item.id === point.end;
       });
-      d[0].chips.push(tempData);
+      if (!d[0].chips.includes(tempData)) {
+        d[0].chips.push(tempData);
+      }
       tempChipData.splice(ind, 1, d[0]);
       setChipData([...tempChipData]);
     } else {
@@ -969,15 +1057,17 @@ const Config = () => {
                     }}
                     size="small"
                     autoHighlight
-                    getOptionLabel={(option) => option.process_name}
+                    value={selectedProcess}
+                    getOptionLabel={(option) => option}
                     renderOption={(option) => (
-                      <React.Fragment>{option.process_name}</React.Fragment>
+                      <React.Fragment>{option}</React.Fragment>
                     )}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         label="Choose a process"
                         variant="outlined"
+                        // value={selectedProcess}
                         inputProps={{
                           ...params.inputProps,
                           autoComplete: "new-password",
@@ -997,6 +1087,7 @@ const Config = () => {
                           className={classes.dummyDataContainer}
                           key={index}
                         >
+                          {console.log(item, "item")}
                           <Grid
                             item
                             xs={5}
