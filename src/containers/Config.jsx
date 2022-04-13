@@ -676,7 +676,6 @@ const Config = () => {
     }
   }, [activeTab]);
 
-  console.log("selected", selectedFunction);
 
   const getProcessNameFromId = async (_id) => {
     try {
@@ -808,7 +807,6 @@ const Config = () => {
         },
       });
       const mappingID = await response.text();
-      console.log("ggg",mappingID)
       if (response.status === 200) {
         setIsLoading(false);
         try {
@@ -860,7 +858,6 @@ const Config = () => {
       });
       if (response.status === 200) {
         const result = await response.json();
-        console.log(result, "ressss");
         setFormulaList(result[0].formula_names);
       }
     } catch (e) {
