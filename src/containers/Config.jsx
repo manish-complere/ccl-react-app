@@ -676,10 +676,9 @@ const Config = () => {
     }
   }, [activeTab]);
 
-
   const getProcessNameFromId = async (_id) => {
     try {
-      const URL = `/process/62565f58d9a5f69911f1128c`;
+      const URL = `/process/${_id}`;
       const response = await request({
         URL,
         requestOptions: {
