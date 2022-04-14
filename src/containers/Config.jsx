@@ -632,7 +632,9 @@ const Config = () => {
               id: attribute.target_attribute,
               chips: Array.isArray(attribute.source_attribute)
                 ? attribute.source_attribute
-                : [attribute.source_attribute],
+                : attribute.source_attribute
+                ? [attribute.source_attribute]
+                : [],
             };
             setChipData((prevData) => [...prevData, tempObj]);
             setSelectedFunction((p) => ({
@@ -815,12 +817,6 @@ const Config = () => {
                   : null,
               formula: selectedFunction[index] ? selectedFunction[index] : "",
             });
-          } else {
-            tempData.push({
-              target_attribute: attr.file_attribute_name,
-              source_attribute: null,
-              formula: "",
-            });
           }
         });
       });
@@ -833,10 +829,30 @@ const Config = () => {
         });
       });
     }
+    const newD = [...tempData];
+    const av = [];
+    if (tempData.length < file_attributes.length) {
+      file_attributes.forEach((attr, ind) => {
+        tempData.forEach((item, index) => {
+          if (item.target_attribute === attr.file_attribute_name) {
+            av.push(attr.file_attribute_name);
+          }
+        });
+      });
+      file_attributes.forEach((attr) => {
+        if (!av.some((t) => t === attr.file_attribute_name)) {
+          newD.push({
+            target_attribute: attr.file_attribute_name,
+            source_attribute: null,
+            formula: "",
+          });
+        }
+      });
+    }
     const finalProcessData = {
       config_id: state[0]._id,
       process_id: processID,
-      attribute_mapping: tempData,
+      attribute_mapping: newD,
     };
     const URL = "/mapping";
     try {
