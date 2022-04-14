@@ -695,11 +695,12 @@ const Config = () => {
 
   useEffect(() => {
     const filteredData = processList.filter(
-      (item, index) => item.process_name === selectedProcess
+      (item, index) => item.process_name == selectedProcess
     );
     if (filteredData.length) {
-      const { file_attributes } = filteredData[0] || {};
+      const { file_attributes, _id } = filteredData[0] || {};
       setProcessAttributes(file_attributes);
+      setProcessID(_id);
     }
     if (processAttributes.length) {
       setConnectingData([]);
@@ -826,7 +827,6 @@ const Config = () => {
           console.log(e);
         }
       }
-      console.log(response);
     } catch (e) {
       console.log(e);
       setIsLoading(false);
@@ -1087,9 +1087,13 @@ const Config = () => {
                         }}
                       />
                     )}
-                    getOptionSelected={(option, value) => {
+                    onChange={(e, value) => {
                       setSelectedProcess(value);
                     }}
+                    // getOptionSelected={(option, value) => {
+                    //   // handleSetAttributes(option);
+                    //   setSelectedProcess(option);
+                    // }}
                   />
                   <Xwrapper>
                     {selectedProcess &&
