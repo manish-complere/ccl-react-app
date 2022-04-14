@@ -866,7 +866,10 @@ const Config = () => {
       });
       if (response.status === 200) {
         const result = await response.json();
-        setFormulaList(result[0].formula_names);
+        const tempFormulaNames = result.filter(
+          (formula) => formula.formula_name
+        );
+        setFormulaList(tempFormulaNames);
       }
     } catch (e) {
       console.log(e);
