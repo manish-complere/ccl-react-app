@@ -718,7 +718,7 @@ const Config = () => {
     ev.dataTransfer.setData("Text", ev.target.id);
   }
 
-  function drop(ev) {
+  function drop(ev, index) {
     ev.preventDefault();
     const { id } = ev.target || {};
     var data = ev.dataTransfer.getData("Text");
@@ -742,10 +742,18 @@ const Config = () => {
     } else {
       setChipData((prevData) => [...prevData, tempObj]);
     }
+    setSelectedFunction((prevValues) => ({
+      ...prevValues,
+      [index]: `${
+        selectedFunction[index] ? selectedFunction[index] : ""
+      }"${tempData}"`,
+    }));
     // var nodeCopy = document.getElementById(data).cloneNode(true);
     // nodeCopy.id = "newId";
     // ev.target.appendChild(nodeCopy);
   }
+
+  console.log(selectedFunction);
 
   useEffect(() => {
     if (point.start.length && point.end.length) {
@@ -787,13 +795,41 @@ const Config = () => {
   };
 
   const handleProcessSaveBtnClick = async () => {
+    const [file_attributes] = processList.map((item, index) => {
+      if (selectedProcess === item.process_name) {
+        return item.file_attributes;
+      }
+    });
     const tempData = [];
     if (chipData.length) {
-      chipData.forEach((item, index) => {
+      file_attributes.forEach((attr, ind) => {
+        chipData.forEach((item, index) => {
+          if (item.id === attr.file_attribute_name) {
+            tempData.push({
+              target_attribute: item.id,
+              source_attribute:
+                item.chips.length > 1
+                  ? item.chips
+                  : item.chips.length
+                  ? item.chips[0]
+                  : null,
+              formula: selectedFunction[index] ? selectedFunction[index] : "",
+            });
+          } else {
+            tempData.push({
+              target_attribute: attr.file_attribute_name,
+              source_attribute: null,
+              formula: "",
+            });
+          }
+        });
+      });
+    } else {
+      file_attributes.forEach((attr, ind) => {
         tempData.push({
-          target_attribute: item.id,
-          source_attribute: item.chips.length > 1 ? item.chips : item.chips[0],
-          formula: selectedFunction[index] ? selectedFunction[index] : "",
+          target_attribute: attr.file_attribute_name,
+          source_attribute: null,
+          formula: "",
         });
       });
     }
@@ -883,31 +919,35 @@ const Config = () => {
     }));
     setSelectedFormulasFromPopup((prevData) => ({ ...prevData, [id]: fn }));
     setAnchorEl(null);
+    console.log(starting_points, "points");
     setIsProcesFnsClicked(false);
+    const pts = [];
     starting_points.forEach((starting_point, index) => {
       const points = { start: starting_point, end: point.end };
       setConnectingData((p) => [...p, points]);
       // setting the chip Data
       const tempData = starting_point.replace(/\d+/g, "");
-      const tempObj = { id: point.end, chips: [tempData] };
-      if (chipData.length && chipData.some((item) => item.id === point.end)) {
-        const tempChipData = [...chipData];
-        let ind;
-        const d = chipData.filter((item, index) => {
-          if (item.id === point.end) {
-            ind = index;
-          }
-          return item.id === point.end;
-        });
-        // if (!d[0].chips.includes(tempData)) {
-        d[0].chips.push(tempData);
-        // }
-        tempChipData.splice(ind, 1, d[0]);
-        setChipData([...tempChipData]);
-      } else {
-        setChipData((prevData) => [...prevData, tempObj]);
-      }
+      pts.push(tempData);
     });
+    if (!chipData.length) {
+      console.log("her..", pts);
+      setChipData((prevData) => [
+        ...prevData,
+        { id: point.end, chips: [...pts] },
+      ]);
+    } else {
+      const tempChipData = [...chipData];
+      let ind;
+      const d = chipData.filter((item, index) => {
+        if (item.id === point.end) {
+          ind = index;
+        }
+        return item.id === point.end;
+      });
+      d[0].chips = [...d[0].chips, ...pts];
+      tempChipData.splice(ind, 1, d[0]);
+      setChipData([...tempChipData]);
+    }
   };
 
   const handleCancelBtnClick = () => {
@@ -1130,7 +1170,7 @@ const Config = () => {
                               const { id } = e.target || {};
                               const element = document.getElementById(id);
                               element.scrollTo(window.innerWidth, 0);
-                              drop(e);
+                              drop(e, inde);
                               setPoint((prevPoints) => ({
                                 ...prevPoints,
                                 end: item.file_attribute_name,
@@ -1146,7 +1186,7 @@ const Config = () => {
                                     i.chips.map((chip, ind) => (
                                       <Chip
                                         label={chip}
-                                        key={index + ind}
+                                        key={index}
                                         className={classes.chip}
                                         variant="outlined"
                                         // color="primary"

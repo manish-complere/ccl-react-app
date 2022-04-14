@@ -109,6 +109,7 @@ const PopUp = (props = {}) => {
   const [formulaCategories, setFormulaCategories] = useState([]);
   const [formulas, setFormulas] = useState([]);
   const [parametersReq, setParametersReq] = useState("");
+  const [userDefineFormulas, setUserDefineFormulas] = useState([]);
 
   useEffect(() => {
     if (formulaList && formulaList.length) {
@@ -145,12 +146,13 @@ const PopUp = (props = {}) => {
 
   const handleAddFormula = (f) => {
     setFormula(f);
+    setUserDefineFormulas((prevFormulas) => [...prevFormulas, `${f}("")`]);
   };
 
   const handleColumnFormula = (value) => {
     setSelectedColumn(value);
     setSelectedColumns((p) => [...p, value]);
-
+    setUserDefineFormulas((p) => [...p, `"${value}"`]);
     // if (
     //   selectedColumns.length &&
     //   !selectedColumns.some((item) => item === value)
@@ -185,15 +187,21 @@ const PopUp = (props = {}) => {
   }, [data]);
 
   useEffect(() => {
+    setUserDefineFormulas((p) => [...p, indexOfProcessAttribute]);
+  }, []);
+
+  useEffect(() => {
     // const tempValue = `${formula}("${
     //   selectedColumns.length && selectedColumns.length < 1
     //     ? selectedColumns[0]
     //     : selectedColumns.join(",")
     // }")`;
     const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
-    const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
+    const tempValue = `${userDefineFormulas.join("")} ${tempColumnsNames.join(
+      ""
+    )}`;
     formula && setSelectedFormula(tempValue);
-  }, [formula, selectedColumn, selectedColumns]);
+  }, [formula, selectedColumn, selectedColumns, userDefineFormulas]);
 
   useEffect(() => {
     if (selectedFormula.length && !selectedColumn.length) {
@@ -335,7 +343,7 @@ const PopUp = (props = {}) => {
                 variant="outlined"
                 fullWidth={true}
                 minRows={12}
-                value={selectedFormula || indexOfProcessAttribute}
+                value={userDefineFormulas.join("") || indexOfProcessAttribute}
                 onChange={(e) => {
                   const { name, value } = e.target || {};
                   setSelectedFormula(value);
