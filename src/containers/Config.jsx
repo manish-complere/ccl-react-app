@@ -754,7 +754,7 @@ const Config = () => {
     }
   }, [point]);
 
-  const handleChipDelete = (ind, id, chip) => {
+  const handleChipDelete = (ind, id, chip, inde) => {
     const tempChipData = [...chipData];
     const tempConnectingData = connectingData.filter((item, index) => {
       const tempStart = item.start.replace(/\d+/g, "");
@@ -774,9 +774,15 @@ const Config = () => {
       }
       return item.id === id;
     });
+    const tempChips = [...new Set(d[0].chips)];
+    d[0].chips = [...tempChips];
     d[0].chips.splice(ind, 1);
     tempChipData.splice(i, 1, d[0]);
     setChipData(tempChipData);
+    const tempSelectedFn = { ...selectedFunction };
+    const replacedFn = tempSelectedFn[inde].replaceAll(`"${chip}"`, "");
+    tempSelectedFn[ind] = replacedFn;
+    setSelectedFunction(tempSelectedFn);
   };
 
   const handleProcessSaveBtnClick = async () => {
@@ -864,7 +870,7 @@ const Config = () => {
     }
   };
 
-  const handleFunctionSave = (fn, { starting_point }, id) => {
+  const handleFunctionSave = (fn, { starting_points }, id) => {
     setSelectedFunction((prevValues) => ({
       ...prevValues,
       [currentClickedFnIndex]: fn,
@@ -872,28 +878,32 @@ const Config = () => {
     setSelectedFormulasFromPopup((prevData) => ({ ...prevData, [id]: fn }));
     setAnchorEl(null);
     setIsProcesFnsClicked(false);
-    setPoint((prevPoints) => ({ ...prevPoints, start: starting_point }));
-
-    // setting the chip Data
-    const tempData = starting_point.replace(/\d+/g, "");
-    const tempObj = { id: point.end, chips: [tempData] };
-    if (chipData.length && chipData.some((item) => item.id === point.end)) {
-      const tempChipData = [...chipData];
-      let ind;
-      const d = chipData.filter((item, index) => {
-        if (item.id === point.end) {
-          ind = index;
-        }
-        return item.id === point.end;
-      });
-      if (!d[0].chips.includes(tempData)) {
+    starting_points.forEach((starting_point, index) => {
+      console.log(starting_point);
+      const points = { start: starting_point, end: point.end };
+      setConnectingData((p) => [...p, points]);
+      // setting the chip Data
+      const tempData = starting_point.replace(/\d+/g, "");
+      const tempObj = { id: point.end, chips: [tempData] };
+      console.log(point);
+      if (chipData.length && chipData.some((item) => item.id === point.end)) {
+        const tempChipData = [...chipData];
+        let ind;
+        const d = chipData.filter((item, index) => {
+          if (item.id === point.end) {
+            ind = index;
+          }
+          return item.id === point.end;
+        });
+        // if (!d[0].chips.includes(tempData)) {
         d[0].chips.push(tempData);
+        // }
+        tempChipData.splice(ind, 1, d[0]);
+        setChipData([...tempChipData]);
+      } else {
+        setChipData((prevData) => [...prevData, tempObj]);
       }
-      tempChipData.splice(ind, 1, d[0]);
-      setChipData([...tempChipData]);
-    } else {
-      setChipData((prevData) => [...prevData, tempObj]);
-    }
+    });
   };
 
   const handleCancelBtnClick = () => {
@@ -1097,12 +1107,12 @@ const Config = () => {
                   />
                   <Xwrapper>
                     {selectedProcess &&
-                      processAttributes.map((item, index) => (
+                      processAttributes.map((item, inde) => (
                         <Grid
                           xs={12}
                           container
                           className={classes.dummyDataContainer}
-                          key={index}
+                          key={inde}
                         >
                           <Grid
                             item
@@ -1137,7 +1147,12 @@ const Config = () => {
                                         variant="outlined"
                                         // color="primary"
                                         onDelete={() =>
-                                          handleChipDelete(ind, i.id, chip)
+                                          handleChipDelete(
+                                            ind,
+                                            i.id,
+                                            chip,
+                                            inde
+                                          )
                                         }
                                       />
                                     ))
@@ -1146,7 +1161,7 @@ const Config = () => {
                           </Grid>
                           <Grid
                             item
-                            id={index}
+                            id={inde}
                             xs={5}
                             className={classes.dummyProcessAttribute}
                           >
@@ -1163,17 +1178,17 @@ const Config = () => {
                           >
                             <FX
                               onClick={(e) => {
-                                handleFunctionClick(e, index);
-                                setCurrentClickedFnIndex(index);
+                                handleFunctionClick(e, inde);
+                                setCurrentClickedFnIndex(inde);
                               }}
-                              id={index}
+                              id={inde}
                             />
                             {selectedFunction &&
                             Object.keys(selectedFunction).length &&
-                            selectedFunction[index] ? (
+                            selectedFunction[inde] ? (
                               <Chip
                                 variant="outlined"
-                                label={selectedFunction[index]}
+                                label={selectedFunction[inde]}
                                 style={{ margin: "0 0.5rem" }}
                               />
                             ) : null}

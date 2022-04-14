@@ -149,15 +149,17 @@ const PopUp = (props = {}) => {
 
   const handleColumnFormula = (value) => {
     setSelectedColumn(value);
-    if (
-      selectedColumns.length &&
-      !selectedColumns.some((item) => item === value)
-    ) {
-      selectedColumn.length && setSelectedColumns((p) => [...p, value]);
-    }
-    if (!selectedColumns.length) {
-      setSelectedColumns((p) => [...p, value]);
-    }
+    setSelectedColumns((p) => [...p, value]);
+
+    // if (
+    //   selectedColumns.length &&
+    //   !selectedColumns.some((item) => item === value)
+    // ) {
+    //   selectedColumn.length && setSelectedColumns((p) => [...p, value]);
+    // }
+    // if (!selectedColumns.length) {
+    //   setSelectedColumns((p) => [...p, value]);
+    // }
   };
 
   const handleFunctionCategoryChange = (e) => {
@@ -183,11 +185,13 @@ const PopUp = (props = {}) => {
   }, [data]);
 
   useEffect(() => {
-    const tempValue = `${formula}("${
-      selectedColumns.length && selectedColumns.length < 1
-        ? selectedColumns[0]
-        : selectedColumns.join(",")
-    }")`;
+    // const tempValue = `${formula}("${
+    //   selectedColumns.length && selectedColumns.length < 1
+    //     ? selectedColumns[0]
+    //     : selectedColumns.join(",")
+    // }")`;
+    const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
+    const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
     formula && setSelectedFormula(tempValue);
   }, [formula, selectedColumn]);
 
@@ -515,13 +519,25 @@ const PopUp = (props = {}) => {
                   fullWidth={true}
                   onClick={() => {
                     let ind = "";
-                    columns.map((item, index) => {
-                      if (item.file_attribute_name === selectedColumn) {
-                        ind = index;
-                      }
+                    const startingPtData = [];
+                    selectedColumns.forEach((column, index) => {
+                      columns.map((c, i) => {
+                        if (column === c.file_attribute_name) {
+                          ind = i;
+                        }
+                      });
+                      startingPtData.push(`${column}${ind}`);
                     });
+                    // columns.map((item, index) => {
+                    //   if (item.file_attribute_name === selectedColumn) {
+                    //     ind = index;
+                    //   }
+                    // });
+                    // onSaveFunction(selectedFormula, {
+                    //   starting_point: `${selectedColumn}${ind}`,
+                    // });
                     onSaveFunction(selectedFormula, {
-                      starting_point: `${selectedColumn}${ind}`,
+                      starting_points: startingPtData,
                     });
                     setSelectedFormula("");
                     setSelectedColumns([]);
