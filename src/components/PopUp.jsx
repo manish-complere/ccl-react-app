@@ -193,7 +193,7 @@ const PopUp = (props = {}) => {
     const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
     const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
     formula && setSelectedFormula(tempValue);
-  }, [formula, selectedColumn]);
+  }, [formula, selectedColumn, selectedColumns]);
 
   useEffect(() => {
     if (selectedFormula.length && !selectedColumn.length) {

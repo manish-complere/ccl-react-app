@@ -734,9 +734,9 @@ const Config = () => {
         }
         return item.id === tempID;
       });
-      if (!d[0].chips.includes(tempData)) {
-        d[0].chips.push(tempData);
-      }
+      // if (!d[0].chips.includes(tempData)) {
+      d[0].chips.push(tempData);
+      // }
       tempChipData.splice(ind, 1, d[0]);
       setChipData([...tempChipData]);
     } else {
@@ -774,26 +774,29 @@ const Config = () => {
       }
       return item.id === id;
     });
-    const tempChips = [...new Set(d[0].chips)];
+    // const tempChips = [...new Set(d[0].chips)];
+    // d[0].chips = [...tempChips];
+    const tempChips = d[0].chips.filter((ch) => ch !== chip);
     d[0].chips = [...tempChips];
-    d[0].chips.splice(ind, 1);
     tempChipData.splice(i, 1, d[0]);
     setChipData(tempChipData);
     const tempSelectedFn = { ...selectedFunction };
     const replacedFn = tempSelectedFn[inde].replaceAll(`"${chip}"`, "");
-    tempSelectedFn[ind] = replacedFn;
+    tempSelectedFn[inde] = replacedFn;
     setSelectedFunction(tempSelectedFn);
   };
 
   const handleProcessSaveBtnClick = async () => {
     const tempData = [];
-    chipData.forEach((item, index) => {
-      tempData.push({
-        target_attribute: item.id,
-        source_attribute: item.chips.length > 1 ? item.chips : item.chips[0],
-        formula: selectedFunction[index] ? selectedFunction[index] : "",
+    if (chipData.length) {
+      chipData.forEach((item, index) => {
+        tempData.push({
+          target_attribute: item.id,
+          source_attribute: item.chips.length > 1 ? item.chips : item.chips[0],
+          formula: selectedFunction[index] ? selectedFunction[index] : "",
+        });
       });
-    });
+    }
     const finalProcessData = {
       config_id: state[0]._id,
       process_id: processID,
@@ -879,13 +882,11 @@ const Config = () => {
     setAnchorEl(null);
     setIsProcesFnsClicked(false);
     starting_points.forEach((starting_point, index) => {
-      console.log(starting_point);
       const points = { start: starting_point, end: point.end };
       setConnectingData((p) => [...p, points]);
       // setting the chip Data
       const tempData = starting_point.replace(/\d+/g, "");
       const tempObj = { id: point.end, chips: [tempData] };
-      console.log(point);
       if (chipData.length && chipData.some((item) => item.id === point.end)) {
         const tempChipData = [...chipData];
         let ind;
@@ -1142,7 +1143,7 @@ const Config = () => {
                                     i.chips.map((chip, ind) => (
                                       <Chip
                                         label={chip}
-                                        key={index + chip}
+                                        key={index + ind}
                                         className={classes.chip}
                                         variant="outlined"
                                         // color="primary"
