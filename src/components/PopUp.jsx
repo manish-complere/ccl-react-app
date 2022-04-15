@@ -104,7 +104,7 @@ const PopUp = (props = {}) => {
   const [selectedColumn, setSelectedColumn] = useState("");
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [formula, setFormula] = useState("");
-  const [shouldMessageVisible, setShouldMessageVisible] = useState(false);
+  // const [shouldMessageVisible, setShouldMessageVisible] = useState(false);
 
   const [formulaCategories, setFormulaCategories] = useState([]);
   const [formulas, setFormulas] = useState([]);
@@ -202,11 +202,11 @@ const PopUp = (props = {}) => {
   }, [selectedColumn, selectedColumns]);
 
   useEffect(() => {
-    if (selectedFormula.length) {
-      setShouldMessageVisible(true);
-    } else {
-      setShouldMessageVisible(false);
-    }
+    // if (selectedFormula.length) {
+    //   setShouldMessageVisible(true);
+    // } else {
+    //   setShouldMessageVisible(false);
+    // }
     const tempF = selectedFormula.slice(0, selectedFormula.indexOf("("));
     const tempInd =
       formulaList &&
@@ -494,7 +494,7 @@ const PopUp = (props = {}) => {
                 </Grid>
               </Grid>
             </Grid>
-            {!!shouldMessageVisible && (
+            {/* {!!shouldMessageVisible && (
               <Grid item xs={12}>
                 <Typography
                   style={{
@@ -506,7 +506,7 @@ const PopUp = (props = {}) => {
                   the formula{" "}
                 </Typography>
               </Grid>
-            )}
+            )} */}
             <Grid
               item
               container

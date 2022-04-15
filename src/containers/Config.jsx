@@ -897,13 +897,13 @@ const Config = () => {
   };
 
   const handleFunctionClick = async (e, id) => {
-    let endPt = "";
-    processAttributes.forEach((item, index) => {
-      if (index === id) {
-        endPt = item.file_attribute_name;
-      }
-    });
-    setPoint((prevPoints) => ({ ...prevPoints, end: endPt }));
+    // let endPt = "";
+    // processAttributes.forEach((item, index) => {
+    //   if (index === id) {
+    //     endPt = item.file_attribute_name;
+    //   }
+    // });
+    // setPoint((prevPoints) => ({ ...prevPoints, end: endPt }));
     setIsProcesFnsClicked(true);
     setAnchorEl(e.currentTarget);
     const URL = "/formula";
