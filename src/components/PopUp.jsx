@@ -202,7 +202,7 @@ const PopUp = (props = {}) => {
   }, [selectedColumn, selectedColumns]);
 
   useEffect(() => {
-    if (selectedFormula.length && !selectedColumn.length) {
+    if (selectedFormula.length) {
       setShouldMessageVisible(true);
     } else {
       setShouldMessageVisible(false);
