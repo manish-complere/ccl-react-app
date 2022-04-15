@@ -345,10 +345,6 @@ const PopUp = (props = {}) => {
                 onChange={(e) => {
                   const { name, value } = e.target || {};
                   setSelectedFormula(value);
-                  if (!value.length) {
-                    setSelectedColumn("");
-                    setSelectedColumns([]);
-                  }
                 }}
               />
             </Grid>
