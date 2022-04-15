@@ -94,6 +94,7 @@ const PopUp = (props = {}) => {
     onSaveFunction = () => {},
     onCancelClick = () => {},
     columns = [],
+    selectedformula = "",
   } = props;
 
   const [tempData, setTempData] = useState(data);
@@ -118,6 +119,10 @@ const PopUp = (props = {}) => {
       setFormulas(tempFormulas);
     }
   }, [formulaList]);
+
+  useEffect(() => {
+    setSelectedFormula(selectedformula);
+  }, [selectedformula]);
 
   const classes = useStyles();
 
@@ -340,6 +345,10 @@ const PopUp = (props = {}) => {
                 onChange={(e) => {
                   const { name, value } = e.target || {};
                   setSelectedFormula(value);
+                  if (!value.length) {
+                    setSelectedColumn("");
+                    setSelectedColumns([]);
+                  }
                 }}
               />
             </Grid>

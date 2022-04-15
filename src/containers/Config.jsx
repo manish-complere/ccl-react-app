@@ -736,9 +736,9 @@ const Config = () => {
         }
         return item.id === tempID;
       });
-      // if (!d[0].chips.includes(tempData)) {
-      d[0].chips.push(tempData);
-      // }
+      if (!d[0].chips.includes(tempData)) {
+        d[0].chips.push(tempData);
+      }
       tempChipData.splice(ind, 1, d[0]);
       setChipData([...tempChipData]);
     } else {
@@ -754,8 +754,6 @@ const Config = () => {
     // nodeCopy.id = "newId";
     // ev.target.appendChild(nodeCopy);
   }
-
-  console.log(selectedFunction);
 
   useEffect(() => {
     if (point.start.length && point.end.length) {
@@ -790,10 +788,10 @@ const Config = () => {
     d[0].chips = [...tempChips];
     tempChipData.splice(i, 1, d[0]);
     setChipData(tempChipData);
-    const tempSelectedFn = { ...selectedFunction };
-    const replacedFn = tempSelectedFn[inde].replaceAll(`"${chip}"`, "");
-    tempSelectedFn[inde] = replacedFn;
-    setSelectedFunction(tempSelectedFn);
+    // const tempSelectedFn = { ...selectedFunction };
+    // const replacedFn = tempSelectedFn[inde].replaceAll(`"${chip}"`, "");
+    // tempSelectedFn[inde] = replacedFn;
+    // setSelectedFunction(tempSelectedFn);
   };
 
   const handleProcessSaveBtnClick = async () => {
@@ -935,35 +933,34 @@ const Config = () => {
     }));
     setSelectedFormulasFromPopup((prevData) => ({ ...prevData, [id]: fn }));
     setAnchorEl(null);
-    console.log(starting_points, "points");
     setIsProcesFnsClicked(false);
-    const pts = [];
-    starting_points.forEach((starting_point, index) => {
-      const points = { start: starting_point, end: point.end };
-      setConnectingData((p) => [...p, points]);
-      // setting the chip Data
-      const tempData = starting_point.replace(/\d+/g, "");
-      pts.push(tempData);
-    });
-    if (!chipData.length) {
-      console.log("her..", pts);
-      setChipData((prevData) => [
-        ...prevData,
-        { id: point.end, chips: [...pts] },
-      ]);
-    } else {
-      const tempChipData = [...chipData];
-      let ind;
-      const d = chipData.filter((item, index) => {
-        if (item.id === point.end) {
-          ind = index;
-        }
-        return item.id === point.end;
-      });
-      d[0].chips = [...d[0].chips, ...pts];
-      tempChipData.splice(ind, 1, d[0]);
-      setChipData([...tempChipData]);
-    }
+    // const pts = [];
+    // starting_points.forEach((starting_point, index) => {
+    //   const points = { start: starting_point, end: point.end };
+    //   setConnectingData((p) => [...p, points]);
+    //   // setting the chip Data
+    //   const tempData = starting_point.replace(/\d+/g, "");
+    //   pts.push(tempData);
+    // });
+    // if (!chipData.length) {
+    //   console.log("her..", pts);
+    //   setChipData((prevData) => [
+    //     ...prevData,
+    //     { id: point.end, chips: [...pts] },
+    //   ]);
+    // } else {
+    //   const tempChipData = [...chipData];
+    //   let ind;
+    //   const d = chipData.filter((item, index) => {
+    //     if (item.id === point.end) {
+    //       ind = index;
+    //     }
+    //     return item.id === point.end;
+    //   });
+    //   d[0].chips = [...d[0].chips, ...pts];
+    //   tempChipData.splice(ind, 1, d[0]);
+    //   setChipData([...tempChipData]);
+    // }
   };
 
   const handleCancelBtnClick = () => {
@@ -1627,6 +1624,7 @@ const Config = () => {
           onSaveFunction={handleFunctionSave}
           onCancelClick={handleCancelBtnClick}
           columns={renamedSavedData}
+          selectedformula={selectedFunction[currentClickedFnIndex]}
         />
 
         <CustomizedSnackbars
