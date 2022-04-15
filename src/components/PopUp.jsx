@@ -94,7 +94,6 @@ const PopUp = (props = {}) => {
     onSaveFunction = () => {},
     onCancelClick = () => {},
     columns = [],
-    indexOfProcessAttribute = "",
   } = props;
 
   const [tempData, setTempData] = useState(data);
@@ -109,7 +108,6 @@ const PopUp = (props = {}) => {
   const [formulaCategories, setFormulaCategories] = useState([]);
   const [formulas, setFormulas] = useState([]);
   const [parametersReq, setParametersReq] = useState("");
-  const [userDefineFormulas, setUserDefineFormulas] = useState([]);
 
   useEffect(() => {
     if (formulaList && formulaList.length) {
@@ -146,13 +144,14 @@ const PopUp = (props = {}) => {
 
   const handleAddFormula = (f) => {
     setFormula(f);
-    setUserDefineFormulas((prevFormulas) => [...prevFormulas, `${f}("")`]);
+    setSelectedFormula(`${f}("")`);
+    setSelectedColumns([]);
+    setSelectedColumn("");
   };
 
   const handleColumnFormula = (value) => {
     setSelectedColumn(value);
     setSelectedColumns((p) => [...p, value]);
-    setUserDefineFormulas((p) => [...p, `"${value}"`]);
     // if (
     //   selectedColumns.length &&
     //   !selectedColumns.some((item) => item === value)
@@ -187,21 +186,15 @@ const PopUp = (props = {}) => {
   }, [data]);
 
   useEffect(() => {
-    setUserDefineFormulas((p) => [...p, indexOfProcessAttribute]);
-  }, []);
-
-  useEffect(() => {
     // const tempValue = `${formula}("${
     //   selectedColumns.length && selectedColumns.length < 1
     //     ? selectedColumns[0]
     //     : selectedColumns.join(",")
     // }")`;
     const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
-    const tempValue = `${userDefineFormulas.join("")} ${tempColumnsNames.join(
-      ""
-    )}`;
+    const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
     formula && setSelectedFormula(tempValue);
-  }, [formula, selectedColumn, selectedColumns, userDefineFormulas]);
+  }, [selectedColumn, selectedColumns]);
 
   useEffect(() => {
     if (selectedFormula.length && !selectedColumn.length) {
@@ -343,7 +336,7 @@ const PopUp = (props = {}) => {
                 variant="outlined"
                 fullWidth={true}
                 minRows={12}
-                value={userDefineFormulas.join("") || indexOfProcessAttribute}
+                value={selectedFormula}
                 onChange={(e) => {
                   const { name, value } = e.target || {};
                   setSelectedFormula(value);

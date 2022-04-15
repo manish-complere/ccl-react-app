@@ -744,12 +744,12 @@ const Config = () => {
     } else {
       setChipData((prevData) => [...prevData, tempObj]);
     }
-    setSelectedFunction((prevValues) => ({
-      ...prevValues,
-      [index]: `${
-        selectedFunction[index] ? selectedFunction[index] : ""
-      }"${tempData}"`,
-    }));
+    // setSelectedFunction((prevValues) => ({
+    //   ...prevValues,
+    //   [index]: `${
+    //     selectedFunction[index] ? selectedFunction[index] : ""
+    //   }"${tempData}"`,
+    // }));
     // var nodeCopy = document.getElementById(data).cloneNode(true);
     // nodeCopy.id = "newId";
     // ev.target.appendChild(nodeCopy);
@@ -980,9 +980,11 @@ const Config = () => {
           method: "GET",
         },
       });
-      const msg = await response.text();
-      setSeverity("success");
-      setMessage(msg);
+      const msg = await response.json();
+      const { message, status } = msg || {};
+
+      setSeverity(() => (status === 200 ? "success" : "error"));
+      setMessage(message);
       setOpen(true);
     } catch (e) {
       console.log(e);
@@ -1625,7 +1627,6 @@ const Config = () => {
           onSaveFunction={handleFunctionSave}
           onCancelClick={handleCancelBtnClick}
           columns={renamedSavedData}
-          indexOfProcessAttribute={selectedFunction[currentClickedFnIndex]}
         />
 
         <CustomizedSnackbars
