@@ -286,7 +286,7 @@ const PopUp = (props = {}) => {
                 onClick={handleSaveClick}
                 variant="contained"
                 color="primary"
-                // disabled={!tempData.length}
+                disabled={!tempData.length}
               >
                 Save
               </Button>
@@ -551,7 +551,7 @@ const PopUp = (props = {}) => {
                     setActiveTab("functions");
                     setFormula("");
                   }}
-                  disabled={!selectedFormula.length || !selectedColumn.length}
+                  // disabled={!selectedFormula.length || !selectedColumn.length}
                 >
                   Save
                 </Button>
