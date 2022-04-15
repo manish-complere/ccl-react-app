@@ -286,7 +286,7 @@ const PopUp = (props = {}) => {
                 onClick={handleSaveClick}
                 variant="contained"
                 color="primary"
-                disabled={!tempData.length}
+                // disabled={!tempData.length}
               >
                 Save
               </Button>
