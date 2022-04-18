@@ -122,6 +122,7 @@ const PopUp = (props = {}) => {
 
   useEffect(() => {
     setSelectedFormula(selectedformula);
+    setFormula(selectedformula);
   }, [selectedformula]);
 
   const classes = useStyles();
@@ -168,6 +169,8 @@ const PopUp = (props = {}) => {
     // }
   };
 
+  console.log(selectedColumns);
+
   const handleFunctionCategoryChange = (e) => {
     const { name, value } = e.target || {};
     setSelectedCategory(value);
@@ -198,8 +201,8 @@ const PopUp = (props = {}) => {
     // }")`;
     const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
     const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
-    formula && setSelectedFormula(tempValue);
-  }, [selectedColumn, selectedColumns]);
+    setSelectedFormula(tempValue);
+  }, [selectedColumn, selectedColumns, formula]);
 
   useEffect(() => {
     // if (selectedFormula.length) {
