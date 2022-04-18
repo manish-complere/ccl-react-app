@@ -121,8 +121,24 @@ const PopUp = (props = {}) => {
   }, [formulaList]);
 
   useEffect(() => {
-    setSelectedFormula(selectedformula);
-    setFormula(selectedformula);
+    setSelectedFormula(
+      `${
+        selectedformula.length && selectedformula.includes("(")
+          ? selectedformula
+          : selectedformula.length
+          ? `${selectedformula}("")`
+          : ""
+      }`
+    );
+    setFormula(
+      `${
+        selectedformula.length && selectedformula.includes("(")
+          ? selectedformula
+          : selectedformula.length
+          ? `${selectedformula}("")`
+          : ""
+      }`
+    );
   }, [selectedformula]);
 
   const classes = useStyles();
@@ -149,7 +165,7 @@ const PopUp = (props = {}) => {
   };
 
   const handleAddFormula = (f) => {
-    setFormula(f);
+    setFormula(`${f}("")`);
     setSelectedFormula(`${f}("")`);
     setSelectedColumns([]);
     setSelectedColumn("");
@@ -200,7 +216,7 @@ const PopUp = (props = {}) => {
     //     : selectedColumns.join(",")
     // }")`;
     const tempColumnsNames = selectedColumns.map((column) => `"${column}"`);
-    const tempValue = `${formula}("") ${tempColumnsNames.join("")}`;
+    const tempValue = `${formula}${tempColumnsNames.join("")}`;
     setSelectedFormula(tempValue);
   }, [selectedColumn, selectedColumns, formula]);
 
@@ -567,11 +583,11 @@ const PopUp = (props = {}) => {
                   style={{ margin: "0 1rem" }}
                   onClick={() => {
                     onCancelClick();
-                    setSelectedFormula("");
-                    setSelectedColumns([]);
-                    setSelectedColumn("");
+                    // setSelectedFormula("");
+                    // setSelectedColumns([]);
+                    // setSelectedColumn("");
                     setActiveTab("functions");
-                    setFormula("");
+                    // setFormula("");
                   }}
                 >
                   cancel
