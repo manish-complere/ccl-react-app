@@ -155,8 +155,8 @@ const PopUp = (props = {}) => {
   };
 
   const handleColumnFormula = (value) => {
-    formula.length && setSelectedColumn(value);
-    formula.length && setSelectedColumns((p) => [...p, value]);
+    setSelectedColumn(value);
+    setSelectedColumns((p) => [...p, value]);
     // if (
     //   selectedColumns.length &&
     //   !selectedColumns.some((item) => item === value)
