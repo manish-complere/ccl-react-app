@@ -90,17 +90,19 @@ const useStyles = makeStyles((theme) => ({
     gap: "1rem",
   },
   processAttributeWrapper: {
-    maxHeight: "60vh",
-    overflow: "scroll",
-    "&::-webkit-scrollbar": {
-      display: "none",
-    },
+    margin: "auto",
+    // minHeight: "60vh",
+    // overflow: "scroll",
+    // "&::-webkit-scrollbar": {
+    //   display: "none",
+    // },
   },
   processAttribute: {
     border: "1px solid black",
     height: "2.5rem",
     padding: "0rem 1rem",
-    width: "70%",
+    width: "30%",
+    // width: "fit-content",
     borderRadius: "4px",
     textAlign: "center",
     display: "flex",
@@ -1268,6 +1270,7 @@ const Config = () => {
                 position: "relative",
                 left: "35%",
                 top: "5%",
+                margin:'0 0 1rem 0'
               }}
             >
               <Grid item xs={3}>
